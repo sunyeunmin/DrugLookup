@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// 1. Supabase 설정 (본인의 환경에 맞게 유지)
+// 1. Supabase 설정
 const SUPABASE_URL = 'https://znzgptzwbumcbfmnmrfs.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_kx5_uc3eHDnzaAQVRD1d6Q_mdKuvc8w'; 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -59,7 +59,6 @@ export default function App() {
       {/* -------------------- 1. 검색 메인 화면 -------------------- */}
       {currentScreen === 'search' && (
         <div style={styles.flexLayout}>
-          {/* 상단 1개 타이틀로 깔끔하게 정리 */}
           <div style={styles.headerArea}>
             <h1 style={styles.mainTitle}>Drug Lookup</h1>
           </div>
@@ -124,13 +123,11 @@ export default function App() {
       {/* -------------------- 2. 약품 상세 정보 화면 -------------------- */}
       {currentScreen === 'detail' && selectedDrug && (
         <div style={styles.flexLayout}>
-          {/* 네비게이션 바에서 반복되던 약 이름 제거하여 가독성 확보 */}
           <div style={styles.navBar}>
             <button onClick={() => setCurrentScreen('search')} style={styles.backButton}>❮ Back</button>
             <div style={{ width: '60px' }}></div>
           </div>
 
-          {/* 요청하신 필드 순서대로 재정렬 */}
           <div style={{ ...styles.scrollArea, padding: '20px 16px' }}>
             <h2 style={styles.detailTitle}>"{selectedDrug.brand_name || selectedDrug.generic_name}"</h2>
             
@@ -141,10 +138,10 @@ export default function App() {
                 <div style={styles.brandHighlight}>{selectedDrug.brand_name || 'N/A'}</div>
               </div>
 
-              {/* 2. Generic Name */}
+              {/* 2. Generic Name (Green 색상 & 굵게 반영) */}
               <div style={styles.infoRow}>
                 <div style={styles.infoLabel}>Generic Name</div>
-                <div style={styles.infoValue}>{selectedDrug.generic_name || '-'}</div>
+                <div style={styles.genericHighlight}>{selectedDrug.generic_name || '-'}</div>
               </div>
 
               {/* 3. Category */}
@@ -218,5 +215,6 @@ const styles = {
   infoLabel: { fontSize: '12px', color: '#8b95a1', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' },
   infoValue: { fontSize: '16px', color: '#333d4b', fontWeight: '500' },
   brandHighlight: { fontSize: '24px', color: '#007aff', fontWeight: '700' },
+  genericHighlight: { fontSize: '22px', color: '#34c759', fontWeight: '700' }, // Apple/Toss 스타일의 굵은 Green 컬러
   remarksBox: { fontSize: '15px', color: '#333d4b', fontWeight: '600', lineHeight: '1.5', backgroundColor: '#fff5f5', padding: '12px', borderRadius: '10px', marginTop: '6px' }
 };
