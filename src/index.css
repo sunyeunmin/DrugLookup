@@ -19,6 +19,12 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  
+  /* 💡 추가: 아이폰 상/하단 다이내믹 아일랜드 및 홈바 영역 잘림 방지 패딩 */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 #root {
