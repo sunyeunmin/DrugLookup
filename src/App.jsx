@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// 1. Supabase 설정 (주소 뒤에 rest/v1/ 제거된 상태 유지)
+// 1. Supabase 설정 (본인의 환경에 맞게 유지)
 const SUPABASE_URL = 'https://znzgptzwbumcbfmnmrfs.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_kx5_uc3eHDnzaAQVRD1d6Q_mdKuvc8w'; 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -29,7 +29,6 @@ export default function App() {
       setErrorMessage('');
       
       try {
-        // 테이블에서 brand_name이나 generic_name이 입력값으로 시작되는 행 실시간 조회
         const { data, error } = await supabase
           .from('drugs')
           .select('*')
@@ -60,8 +59,8 @@ export default function App() {
       {/* -------------------- 1. 검색 메인 화면 -------------------- */}
       {currentScreen === 'search' && (
         <div style={styles.flexLayout}>
+          {/* 상단 1개 타이틀로 깔끔하게 정리 */}
           <div style={styles.headerArea}>
-            <div style={styles.subHeader}>Drug Lookup</div>
             <h1 style={styles.mainTitle}>Drug Lookup</h1>
           </div>
 
@@ -125,36 +124,54 @@ export default function App() {
       {/* -------------------- 2. 약품 상세 정보 화면 -------------------- */}
       {currentScreen === 'detail' && selectedDrug && (
         <div style={styles.flexLayout}>
+          {/* 네비게이션 바에서 반복되던 약 이름 제거하여 가독성 확보 */}
           <div style={styles.navBar}>
             <button onClick={() => setCurrentScreen('search')} style={styles.backButton}>❮ Back</button>
-            <span style={styles.navTitle}>{selectedDrug.brand_name || selectedDrug.generic_name}</span>
             <div style={{ width: '60px' }}></div>
           </div>
 
+          {/* 요청하신 필드 순서대로 재정렬 */}
           <div style={{ ...styles.scrollArea, padding: '20px 16px' }}>
             <h2 style={styles.detailTitle}>"{selectedDrug.brand_name || selectedDrug.generic_name}"</h2>
             
             <div style={styles.detailCard}>
+              {/* 1. Brand Name */}
               <div style={styles.infoRow}>
                 <div style={styles.infoLabel}>Brand Name</div>
                 <div style={styles.brandHighlight}>{selectedDrug.brand_name || 'N/A'}</div>
               </div>
-              <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>Category</div>
-                <div style={styles.infoValue}>{selectedDrug.category || '-'}</div>
-              </div>
+
+              {/* 2. Generic Name */}
               <div style={styles.infoRow}>
                 <div style={styles.infoLabel}>Generic Name</div>
                 <div style={styles.infoValue}>{selectedDrug.generic_name || '-'}</div>
               </div>
+
+              {/* 3. Category */}
+              <div style={styles.infoRow}>
+                <div style={styles.infoLabel}>Category</div>
+                <div style={styles.infoValue}>{selectedDrug.category || '-'}</div>
+              </div>
+
+              {/* 4. Sub Category */}
+              <div style={styles.infoRow}>
+                <div style={styles.infoLabel}>Sub Category</div>
+                <div style={styles.infoValue}>{selectedDrug.sub_category || '-'}</div>
+              </div>
+
+              {/* 5. Classification */}
               <div style={styles.infoRow}>
                 <div style={styles.infoLabel}>Classification</div>
                 <div style={styles.infoValue}>{selectedDrug.drug_classification || selectedDrug.drug_classificati || '-'}</div>
               </div>
+
+              {/* 6. Indication */}
               <div style={styles.infoRow}>
                 <div style={styles.infoLabel}>Indication</div>
                 <div style={styles.infoValue}>{selectedDrug.indication || '-'}</div>
               </div>
+
+              {/* 7. Important Info (Remarks) */}
               <div style={{ ...styles.infoRow, borderBottom: 'none' }}>
                 <div style={styles.infoLabel}>Important Info</div>
                 <div style={styles.remarksBox}>
@@ -173,8 +190,7 @@ export default function App() {
 const styles = {
   mobileContainer: { width: '100vw', height: '100vh', backgroundColor: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif', overflow: 'hidden', position: 'relative', boxSizing: 'border-box' },
   flexLayout: { display: 'flex', flexDirection: 'column', width: '100%', height: '100%' },
-  headerArea: { padding: '16px 20px 4px 20px' },
-  subHeader: { fontSize: '13px', color: '#8b95a1', fontWeight: '500', textAlign: 'center', marginBottom: '2px' },
+  headerArea: { padding: '24px 20px 4px 20px' },
   mainTitle: { fontSize: '32px', fontWeight: '800', color: '#191f28', margin: '4px 0' },
   searchBarWrapper: { position: 'relative', margin: '8px 20px 16px 20px', backgroundColor: '#f2f4f6', borderRadius: '14px', padding: '10px 14px', display: 'flex', alignItems: 'center' },
   searchIcon: { fontSize: '16px', marginRight: '8px' },
@@ -196,7 +212,6 @@ const styles = {
   tabLabel: { fontSize: '11px', fontWeight: '600' },
   navBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '52px', borderBottom: '1px solid #f2f4f6', padding: '0 16px', backgroundColor: '#ffffff' },
   backButton: { border: 'none', backgroundColor: 'transparent', color: '#007aff', fontSize: '16px', fontWeight: '500', cursor: 'pointer', width: '60px', textAlign: 'left' },
-  navTitle: { fontSize: '17px', fontWeight: '600', color: '#191f28' },
   detailTitle: { fontSize: '28px', fontWeight: '700', color: '#191f28', margin: '0 0 20px 0' },
   detailCard: { backgroundColor: '#ffffff', borderRadius: '20px', border: '1px solid #e5e8eb', padding: '6px 18px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)' },
   infoRow: { padding: '16px 0', borderBottom: '1px solid #f2f4f6' },
