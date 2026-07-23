@@ -123,13 +123,16 @@ export default function App() {
       {/* -------------------- 2. 약품 상세 정보 화면 -------------------- */}
       {currentScreen === 'detail' && selectedDrug && (
         <div style={styles.flexLayout}>
-          <div style={styles.navBar}>
-            <button onClick={() => setCurrentScreen('search')} style={styles.backButton}>❮ Back</button>
-            <div style={{ width: '60px' }}></div>
-          </div>
-
-          <div style={{ ...styles.scrollArea, padding: '20px 16px' }}>
-            <h2 style={styles.detailTitle}>"{selectedDrug.brand_name || selectedDrug.generic_name}"</h2>
+          
+          <div style={{ ...styles.scrollArea, padding: '16px' }}>
+            {/* 목업 스타일을 반영한 새로운 상단 배치 (네비바 삭제) */}
+            <button onClick={() => setCurrentScreen('search')} style={styles.inlineBackButton}>
+              &lt; Back
+            </button>
+            
+            <h2 style={styles.detailTitle}>
+              "{selectedDrug.brand_name || selectedDrug.generic_name}"
+            </h2>
             
             <div style={styles.detailCard}>
               {/* 1. Brand Name */}
@@ -138,37 +141,37 @@ export default function App() {
                 <div style={styles.brandHighlight}>{selectedDrug.brand_name || 'N/A'}</div>
               </div>
 
-              {/* 2. Generic Name (Green 색상 & 굵게 반영) */}
+              {/* 2. Generic Name */}
               <div style={styles.infoRow}>
                 <div style={styles.infoLabel}>Generic Name</div>
                 <div style={styles.genericHighlight}>{selectedDrug.generic_name || '-'}</div>
               </div>
 
-              {/* 3. Category */}
+              {/* 3. Category & Sub Category 구조화 레이아웃 */}
               <div style={styles.infoRow}>
                 <div style={styles.infoLabel}>Category</div>
                 <div style={styles.infoValue}>{selectedDrug.category || '-'}</div>
+                {selectedDrug.sub_category && (
+                  <div style={styles.subCategoryTreeRow}>
+                    <span style={styles.treeSymbol}>└─</span>
+                    <span style={styles.infoValue}>{selectedDrug.sub_category}</span>
+                  </div>
+                )}
               </div>
 
-              {/* 4. Sub Category */}
-              <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>Sub Category</div>
-                <div style={styles.infoValue}>{selectedDrug.sub_category || '-'}</div>
-              </div>
-
-              {/* 5. Classification */}
+              {/* 4. Classification */}
               <div style={styles.infoRow}>
                 <div style={styles.infoLabel}>Classification</div>
                 <div style={styles.infoValue}>{selectedDrug.drug_classification || selectedDrug.drug_classificati || '-'}</div>
               </div>
 
-              {/* 6. Indication */}
+              {/* 5. Indication */}
               <div style={styles.infoRow}>
                 <div style={styles.infoLabel}>Indication</div>
                 <div style={styles.infoValue}>{selectedDrug.indication || '-'}</div>
               </div>
 
-              {/* 7. Important Info (Remarks) */}
+              {/* 6. Important Info (Remarks) */}
               <div style={{ ...styles.infoRow, borderBottom: 'none' }}>
                 <div style={styles.infoLabel}>Important Info</div>
                 <div style={styles.remarksBox}>
@@ -207,14 +210,17 @@ const styles = {
   tabItem: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
   tabIcon: { fontSize: '20px', marginBottom: '2px' },
   tabLabel: { fontSize: '11px', fontWeight: '600' },
-  navBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '52px', borderBottom: '1px solid #f2f4f6', padding: '0 16px', backgroundColor: '#ffffff' },
-  backButton: { border: 'none', backgroundColor: 'transparent', color: '#007aff', fontSize: '16px', fontWeight: '500', cursor: 'pointer', width: '60px', textAlign: 'left' },
-  detailTitle: { fontSize: '28px', fontWeight: '700', color: '#191f28', margin: '0 0 20px 0' },
-  detailCard: { backgroundColor: '#ffffff', borderRadius: '20px', border: '1px solid #e5e8eb', padding: '6px 18px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)' },
+  // 목업 화면과 일치시킨 상단 배치용 뒤로가기 스타일
+  inlineBackButton: { border: 'none', backgroundColor: 'transparent', color: '#007aff', fontSize: '20px', fontWeight: '400', cursor: 'pointer', padding: '4px 0 12px 4px', display: 'block', textAlign: 'left' },
+  detailTitle: { fontSize: '32px', fontWeight: '700', color: '#191f28', margin: '0 0 20px 4px' },
+  detailCard: { backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid #e5e8eb', padding: '10px 20px', boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)' },
   infoRow: { padding: '16px 0', borderBottom: '1px solid #f2f4f6' },
-  infoLabel: { fontSize: '12px', color: '#8b95a1', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' },
-  infoValue: { fontSize: '16px', color: '#333d4b', fontWeight: '500' },
-  brandHighlight: { fontSize: '24px', color: '#007aff', fontWeight: '700' },
-  genericHighlight: { fontSize: '22px', color: '#34c759', fontWeight: '700' }, // Apple/Toss 스타일의 굵은 Green 컬러
-  remarksBox: { fontSize: '15px', color: '#333d4b', fontWeight: '600', lineHeight: '1.5', backgroundColor: '#fff5f5', padding: '12px', borderRadius: '10px', marginTop: '6px' }
+  infoLabel: { fontSize: '12px', color: '#8b95a1', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' },
+  infoValue: { fontSize: '18px', color: '#333d4b', fontWeight: '500', lineHeight: '1.3' },
+  brandHighlight: { fontSize: '26px', color: '#007aff', fontWeight: '700' },
+  genericHighlight: { fontSize: '22px', color: '#34c759', fontWeight: '700' },
+  // 카테고리 트리 구조 시각화 스타일
+  subCategoryTreeRow: { display: 'flex', alignItems: 'center', marginTop: '6px' },
+  treeSymbol: { color: '#8b95a1', fontFamily: 'monospace', fontSize: '18px', marginRight: '6px', userSelect: 'none' },
+  remarksBox: { fontSize: '15px', color: '#333d4b', fontWeight: '600', lineHeight: '1.5', backgroundColor: '#fff5f5', padding: '14px', borderRadius: '12px', marginTop: '8px' }
 };
