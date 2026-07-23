@@ -7,8 +7,10 @@ const SUPABASE_ANON_KEY = 'sb_publishable_kx5_uc3eHDnzaAQVRD1d6Q_mdKuvc8w';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function App() {
-  // ✨ 기기별 화면 높이를 실시간으로 저장하는 상태
   const [appHeight, setAppHeight] = useState(window.innerHeight);
+  
+  // ✨ 핵심 추가: 화면 높이가 715px보다 작으면(아이폰 SE 등) 촘촘한 모드로 전환!
+  const isSmallScreen = appHeight < 715; 
 
   const [currentScreen, setCurrentScreen] = useState('main'); 
   const [activeTab, setActiveTab] = useState('search'); 
@@ -23,15 +25,12 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // ✨ 기기 사이즈가 바뀔 때마다 높이를 재계산하는 마법의 코드
   useEffect(() => {
     const handleResize = () => {
       setAppHeight(window.innerHeight);
     };
-    
     window.addEventListener('resize', handleResize);
-    handleResize(); // 처음 켜질 때 한 번 계산
-    
+    handleResize();
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -75,15 +74,16 @@ export default function App() {
     return () => clearTimeout(delayDebounceTimer);
   }, [searchQuery]);
 
+  // ✨ 화면 크기에 따라 변경된 스타일 객체를 가져옵니다.
+  const styles = getStyles(isSmallScreen);
+
   return (
-    // ✨ 계산된 appHeight를 화면 전체 높이에 강제 적용
     <div style={{ ...styles.dynamicContainer, height: `${appHeight}px` }}>
       
       {/* -------------------- 1. 메인 화면 -------------------- */}
       {currentScreen === 'main' && (
         <div style={styles.flexLayout}>
           
-          {/* 상단 헤더 & 검색창 (크기 고정) */}
           <div style={styles.topFixedArea}>
             <div style={styles.headerArea}>
               <h1 style={styles.mainTitle}>{activeTab === 'search' ? 'Drug Lookup' : 'Recent History'}</h1>
@@ -108,7 +108,6 @@ export default function App() {
             )}
           </div>
 
-          {/* 중간 내용 영역 (남은 공간을 모두 차지하며 여기서만 스크롤) */}
           <div style={styles.scrollArea}>
             {activeTab === 'search' && (
               <>
@@ -175,7 +174,6 @@ export default function App() {
             )}
           </div>
 
-          {/* 하단 탭 바 (화면 맨 밑에 크기 고정) */}
           <div style={styles.tabBar}>
             <div onClick={() => setActiveTab('search')} style={{ ...styles.tabItem, color: activeTab === 'search' ? '#007aff' : '#8e8e93' }}>
               <span style={styles.tabIcon}>🔍</span>
@@ -256,36 +254,35 @@ export default function App() {
   );
 }
 
-// 🎨 스타일링
-const styles = {
-  // 전체를 감싸는 컨테이너 (스크롤 방지 및 기기 맞춤)
+// 🎨 작은 화면(SE 등)일 때 여백과 글자 크기를 확 줄이도록 동적으로 디자인하는 함수!
+const getStyles = (isSmall) => ({
   dynamicContainer: { width: '100vw', backgroundColor: '#F2F2F7', overflow: 'hidden', position: 'relative', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
   flexLayout: { display: 'flex', flexDirection: 'column', width: '100%', height: '100%' },
   
-  // 상단 영역 (flexShrink: 0 으로 크기 축소 방지)
   topFixedArea: { flexShrink: 0, backgroundColor: '#ffffff' },
-  headerArea: { padding: 'max(24px, env(safe-area-inset-top)) 20px 12px 20px' },
-  mainTitle: { fontSize: '34px', fontWeight: '800', color: '#000000', margin: 0, letterSpacing: '-0.5px' },
-  searchContainer: { padding: '4px 20px 16px 20px', borderBottom: '1px solid #e5e5ea' },
+  
+  // SE 환경에서는 타이틀 크기와 패딩을 대폭 축소
+  headerArea: { padding: `max(${isSmall ? '16px' : '24px'}, env(safe-area-inset-top)) 20px ${isSmall ? '8px' : '12px'} 20px` },
+  mainTitle: { fontSize: isSmall ? '28px' : '34px', fontWeight: '800', color: '#000000', margin: 0, letterSpacing: '-0.5px' },
+  searchContainer: { padding: `4px 20px ${isSmall ? '12px' : '16px'} 20px`, borderBottom: '1px solid #e5e5ea' },
   searchBarWrapper: { position: 'relative', backgroundColor: '#7676801F', borderRadius: '10px', padding: '8px 12px', display: 'flex', alignItems: 'center' },
   searchIcon: { fontSize: '16px', marginRight: '6px', color: '#8e8e93' },
   searchInput: { flex: 1, border: 'none', backgroundColor: 'transparent', fontSize: '17px', outline: 'none', color: '#000' },
   clearButton: { border: 'none', backgroundColor: '#c7c7cc', color: '#ffffff', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   
-  // 중간 스크롤 영역 (flex: 1 로 남은 공간 모두 차지, 이 안에서만 스크롤)
   scrollArea: { flex: 1, overflowY: 'auto', backgroundColor: '#ffffff' },
   
+  // 검색 결과 리스트 아이템 높이 축소
   listWrapper: { padding: '0 20px' },
-  listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid #e5e5ea', cursor: 'pointer' },
+  listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isSmall ? '12px 0' : '16px 0', borderBottom: '1px solid #e5e5ea', cursor: 'pointer' },
   listItemContent: { display: 'flex', flexDirection: 'column' },
   listTitleRow: { display: 'flex', alignItems: 'center', marginBottom: '4px' },
-  listGeneric: { fontSize: '17px', color: '#000', fontWeight: '500' },
+  listGeneric: { fontSize: isSmall ? '16px' : '17px', color: '#000', fontWeight: '500' },
   listControlBadge: { backgroundColor: '#ffebeb', color: '#ff3b30', fontSize: '11px', fontWeight: '700', padding: '2px 6px', borderRadius: '4px', marginLeft: '8px', overflow: 'hidden' },
-  listBrand: { fontSize: '14px', color: '#8e8e93', fontWeight: '400' },
+  listBrand: { fontSize: isSmall ? '13px' : '14px', color: '#8e8e93', fontWeight: '400' },
   chevron: { fontSize: '16px', color: '#c7c7cc', fontWeight: '600' },
   clearHistoryBtn: { backgroundColor: 'transparent', color: '#ff3b30', border: 'none', fontSize: '15px', fontWeight: '600', cursor: 'pointer', padding: '8px 16px' },
 
-  // 하단 탭 바 (flexShrink: 0 으로 크기 고정, 환경변수로 안전영역 확보)
   tabBar: { flexShrink: 0, height: 'calc(54px + env(safe-area-inset-bottom, 0px))', paddingBottom: 'env(safe-area-inset-bottom, 0px)', borderTop: '1px solid #e5e5ea', backgroundColor: '#f8f8f8', display: 'flex' },
   tabItem: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
   tabIcon: { fontSize: '20px', marginBottom: '2px' },
@@ -302,21 +299,26 @@ const styles = {
   
   detailScrollArea: { flex: 1, overflowY: 'auto', paddingBottom: 'calc(40px + env(safe-area-inset-bottom, 0px))' },
   
-  detailTitleArea: { padding: '4px 20px 16px 20px' },
-  detailMainTitle: { fontSize: '34px', fontWeight: '800', color: '#000', margin: 0, letterSpacing: '-0.5px' },
-  premiumCard: { backgroundColor: '#ffffff', borderRadius: '16px', padding: '16px 20px', margin: '0 16px 16px 16px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' },
-  cardRow: { paddingBottom: '16px', marginBottom: '16px', borderBottom: '1px solid #f2f2f7' },
-  label: { fontSize: '12px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' },
-  valueText: { fontSize: '17px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.4' },
+  detailTitleArea: { padding: `4px 20px ${isSmall ? '12px' : '16px'} 20px` },
+  detailMainTitle: { fontSize: isSmall ? '28px' : '34px', fontWeight: '800', color: '#000', margin: 0, letterSpacing: '-0.5px' },
+  
+  // ✨ SE 환경에서는 하얀색 카드의 여백과 줄간격을 컴팩트하게 조정
+  premiumCard: { backgroundColor: '#ffffff', borderRadius: '16px', padding: isSmall ? '12px 16px' : '16px 20px', margin: isSmall ? '0 16px 12px 16px' : '0 16px 16px 16px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' },
+  cardRow: { paddingBottom: isSmall ? '10px' : '16px', marginBottom: isSmall ? '10px' : '16px', borderBottom: '1px solid #f2f2f7' },
+  label: { fontSize: isSmall ? '11px' : '12px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: isSmall ? '4px' : '6px' },
+  valueText: { fontSize: isSmall ? '15px' : '17px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.3' },
+  
   brandNameWrapper: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  brandNameText: { fontSize: '24px', color: '#007aff', fontWeight: '700', letterSpacing: '-0.3px' },
-  genericNameText: { fontSize: '22px', color: '#34c759', fontWeight: '700', letterSpacing: '-0.3px' },
-  controlBadge: { backgroundColor: '#ffebeb', color: '#ff3b30', fontSize: '15px', fontWeight: '700', padding: '4px 10px', borderRadius: '8px', overflow: 'hidden' },
+  brandNameText: { fontSize: isSmall ? '20px' : '24px', color: '#007aff', fontWeight: '700', letterSpacing: '-0.3px' },
+  genericNameText: { fontSize: isSmall ? '18px' : '22px', color: '#34c759', fontWeight: '700', letterSpacing: '-0.3px' },
+  controlBadge: { backgroundColor: '#ffebeb', color: '#ff3b30', fontSize: isSmall ? '13px' : '15px', fontWeight: '700', padding: '4px 10px', borderRadius: '8px', overflow: 'hidden' },
+  
   treeWrapper: { display: 'flex', alignItems: 'center', marginTop: '4px' },
   treeLine: { color: '#c7c7cc', fontFamily: 'monospace', fontSize: '18px', marginRight: '8px' },
-  importantCard: { backgroundColor: '#fff7f7', border: '1px solid #ffdfdf', borderRadius: '16px', padding: '18px 20px', margin: '0 16px 16px 16px' },
-  importantHeader: { display: 'flex', alignItems: 'center', marginBottom: '8px' },
+  
+  importantCard: { backgroundColor: '#fff7f7', border: '1px solid #ffdfdf', borderRadius: '16px', padding: isSmall ? '14px 16px' : '18px 20px', margin: isSmall ? '0 16px 12px 16px' : '0 16px 16px 16px' },
+  importantHeader: { display: 'flex', alignItems: 'center', marginBottom: isSmall ? '6px' : '8px' },
   importantIcon: { color: '#ff3b30', fontSize: '16px', marginRight: '6px' },
   importantTitle: { fontSize: '12px', color: '#ff3b30', fontWeight: '700', letterSpacing: '0.5px' },
-  importantText: { fontSize: '16px', color: '#3a3a3c', fontWeight: '500', lineHeight: '1.5' }
-};
+  importantText: { fontSize: isSmall ? '14px' : '16px', color: '#3a3a3c', fontWeight: '500', lineHeight: '1.4' }
+});
