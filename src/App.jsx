@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// 1. Supabase 설정
+// 1. Supabase 설정 (유지)
 const SUPABASE_URL = 'https://znzgptzwbumcbfmnmrfs.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_kx5_uc3eHDnzaAQVRD1d6Q_mdKuvc8w'; 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -14,7 +14,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // 2. 실시간 Supabase 테이블 쿼리 로직
+  // 2. 실시간 쿼리 로직
   useEffect(() => {
     const fetchDrugs = async () => {
       const trimmedQuery = searchQuery.trim();
@@ -91,9 +91,10 @@ export default function App() {
               <div style={styles.listWrapper}>
                 {searchResults.map((drug) => (
                   <div key={drug.id} onClick={() => { setSelectedDrug(drug); setCurrentScreen('detail'); }} style={styles.listItem}>
-                    <span style={styles.listItemText}>
-                      {drug.generic_name}{drug.brand_name ? ` (${drug.brand_name})` : ''}
-                    </span>
+                    <div style={styles.listItemContent}>
+                      <span style={styles.listGeneric}>{drug.generic_name}</span>
+                      {drug.brand_name && <span style={styles.listBrand}>{drug.brand_name}</span>}
+                    </div>
                     <span style={styles.chevron}>❯</span>
                   </div>
                 ))}
@@ -120,71 +121,83 @@ export default function App() {
         </div>
       )}
 
-      {/* -------------------- 2. 약품 상세 정보 화면 -------------------- */}
+      {/* -------------------- 2. 약품 상세 정보 화면 (프리미엄 UI) -------------------- */}
       {currentScreen === 'detail' && selectedDrug && (
         <div style={styles.flexLayout}>
           
-          <div style={{ ...styles.scrollArea, padding: '16px' }}>
-            <button onClick={() => setCurrentScreen('search')} style={styles.inlineBackButton}>
-              &lt; Back
+          {/* 상단 네비게이션 바 (깔끔하게 고정) */}
+          <div style={styles.detailNavBar}>
+            <button onClick={() => setCurrentScreen('search')} style={styles.navBackButton}>
+              <span style={{ fontSize: '20px', marginRight: '4px' }}>‹</span> Back
             </button>
+          </div>
+
+          <div style={styles.detailScrollArea}>
             
-            <h2 style={styles.detailTitle}>
-              "{selectedDrug.brand_name || selectedDrug.generic_name}"
-            </h2>
+            {/* 타이틀 영역 */}
+            <div style={styles.detailTitleArea}>
+              <h2 style={styles.detailMainTitle}>
+                "{selectedDrug.brand_name || selectedDrug.generic_name}"
+              </h2>
+            </div>
             
-            <div style={styles.detailCard}>
-              {/* 1. Brand Name & Control Drug 배치 구역 */}
-              <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>Brand Name</div>
-                <div style={styles.brandRowWrapper}>
-                  <div style={styles.brandHighlight}>{selectedDrug.brand_name || 'N/A'}</div>
-                  {/* control_drug 값이 존재할 경우 우측에 빨간색 큰 글씨로 바인딩 */}
+            {/* 💎 카드 1: 핵심 이름 정보 (Brand & Generic) */}
+            <div style={styles.premiumCard}>
+              <div style={styles.cardRow}>
+                <div style={styles.label}>Brand Name</div>
+                <div style={styles.brandNameWrapper}>
+                  <div style={styles.brandNameText}>{selectedDrug.brand_name || 'N/A'}</div>
+                  {/* 세련된 배지 스타일의 Control Drug 표시 */}
                   {selectedDrug.control_drug && (
-                    <div style={styles.controlDrugBadge}>{selectedDrug.control_drug}</div>
+                    <div style={styles.controlBadge}>
+                      {selectedDrug.control_drug}
+                    </div>
                   )}
                 </div>
               </div>
-
-              {/* 2. Generic Name */}
-              <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>Generic Name</div>
-                <div style={styles.genericHighlight}>{selectedDrug.generic_name || '-'}</div>
+              <div style={{ ...styles.cardRow, borderBottom: 'none', paddingBottom: 0 }}>
+                <div style={styles.label}>Generic Name</div>
+                <div style={styles.genericNameText}>{selectedDrug.generic_name || '-'}</div>
               </div>
+            </div>
 
-              {/* 3. Category & Sub Category */}
-              <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>Category</div>
-                <div style={styles.infoValue}>{selectedDrug.category || '-'}</div>
+            {/* 📦 카드 2: 카테고리 트리 구조 */}
+            <div style={styles.premiumCard}>
+              <div style={{ ...styles.cardRow, borderBottom: 'none', paddingBottom: 0 }}>
+                <div style={styles.label}>Category</div>
+                <div style={styles.valueText}>{selectedDrug.category || '-'}</div>
                 {selectedDrug.sub_category && (
-                  <div style={styles.subCategoryTreeRow}>
-                    <span style={styles.treeSymbol}>└─</span>
-                    <span style={styles.infoValue}>{selectedDrug.sub_category}</span>
+                  <div style={styles.treeWrapper}>
+                    <span style={styles.treeLine}>└─</span>
+                    <span style={styles.valueText}>{selectedDrug.sub_category}</span>
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* 4. Classification */}
-              <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>Classification</div>
-                <div style={styles.infoValue}>{selectedDrug.drug_classification || selectedDrug.drug_classificati || '-'}</div>
+            {/* 🧬 카드 3: 분류 및 적응증 */}
+            <div style={styles.premiumCard}>
+              <div style={styles.cardRow}>
+                <div style={styles.label}>Classification</div>
+                <div style={styles.valueText}>{selectedDrug.drug_classification || selectedDrug.drug_classificati || '-'}</div>
               </div>
-
-              {/* 5. Indication */}
-              <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>Indication</div>
-                <div style={styles.infoValue}>{selectedDrug.indication || '-'}</div>
-              </div>
-
-              {/* 6. Important Info (Remarks) */}
-              <div style={{ ...styles.infoRow, borderBottom: 'none' }}>
-                <div style={styles.infoLabel}>Important Info</div>
-                <div style={styles.remarksBox}>
-                  <span style={{ color: '#ff3b30', marginRight: '4px' }}>★</span>
-                  {selectedDrug.remarks || 'No specific remarks recorded.'}
-                </div>
+              <div style={{ ...styles.cardRow, borderBottom: 'none', paddingBottom: 0 }}>
+                <div style={styles.label}>Indication</div>
+                <div style={styles.valueText}>{selectedDrug.indication || '-'}</div>
               </div>
             </div>
+
+            {/* 🚨 카드 4: 중요 정보 (눈에 띄면서도 고급스럽게) */}
+            <div style={styles.importantCard}>
+              <div style={styles.importantHeader}>
+                <span style={styles.importantIcon}>★</span>
+                <span style={styles.importantTitle}>IMPORTANT INFO</span>
+              </div>
+              <div style={styles.importantText}>
+                {selectedDrug.remarks || 'No specific remarks recorded.'}
+              </div>
+            </div>
+
           </div>
         </div>
       )}
@@ -192,45 +205,70 @@ export default function App() {
   );
 }
 
+// 🎨 프리미엄 유료 앱 스타일링
 const styles = {
-  mobileContainer: { width: '100vw', height: '100vh', backgroundColor: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif', overflow: 'hidden', position: 'relative', boxSizing: 'border-box' },
+  // 공통 및 검색 화면
+  mobileContainer: { width: '100vw', height: '100vh', backgroundColor: '#F2F2F7', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', overflow: 'hidden', position: 'relative', boxSizing: 'border-box' },
   flexLayout: { display: 'flex', flexDirection: 'column', width: '100%', height: '100%' },
-  headerArea: { padding: '24px 20px 4px 20px' },
-  mainTitle: { fontSize: '32px', fontWeight: '800', color: '#191f28', margin: '4px 0' },
-  searchBarWrapper: { position: 'relative', margin: '8px 20px 16px 20px', backgroundColor: '#f2f4f6', borderRadius: '14px', padding: '10px 14px', display: 'flex', alignItems: 'center' },
-  searchIcon: { fontSize: '16px', marginRight: '8px' },
-  searchInput: { flex: 1, border: 'none', backgroundColor: 'transparent', fontSize: '16px', outline: 'none', color: '#191f28' },
-  clearButton: { border: 'none', backgroundColor: '#b0b8c1', color: '#ffffff', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  scrollArea: { flex: 1, overflowY: 'auto', paddingBottom: '70px' },
-  emptyContainer: { textAlign: 'center', paddingTop: '100px' },
-  emptyIcon: { fontSize: '48px', marginBottom: '12px', opacity: 0.5 },
-  emptyText: { fontSize: '15px', color: '#6b7684', fontWeight: '500' },
-  loadingText: { textAlign: 'center', padding: '30px', color: '#8b95a1' },
-  errorText: { padding: '14px', margin: '10px 20px', backgroundColor: '#fff5f5', color: '#ff3b30', borderRadius: '8px', fontSize: '14px', fontWeight: '500', textAlign: 'center' },
+  headerArea: { padding: '24px 20px 12px 20px', backgroundColor: '#ffffff' },
+  mainTitle: { fontSize: '34px', fontWeight: '800', color: '#000000', margin: 0, letterSpacing: '-0.5px' },
+  searchBarWrapper: { position: 'relative', margin: '0 20px 16px 20px', backgroundColor: '#e4e4e9', borderRadius: '12px', padding: '10px 14px', display: 'flex', alignItems: 'center' },
+  searchIcon: { fontSize: '16px', marginRight: '8px', color: '#8e8e93' },
+  searchInput: { flex: 1, border: 'none', backgroundColor: 'transparent', fontSize: '17px', outline: 'none', color: '#000' },
+  clearButton: { border: 'none', backgroundColor: '#c7c7cc', color: '#ffffff', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  scrollArea: { flex: 1, overflowY: 'auto', paddingBottom: '70px', backgroundColor: '#ffffff' },
+  
+  // 리스트 아이템 디자인 개선
   listWrapper: { padding: '0 20px' },
-  listItem: { display: 'flex', justifycontent: 'space-between', alignItems: 'center', padding: '18px 4px', borderBottom: '1px solid #f2f4f6', cursor: 'pointer' },
-  listItemText: { fontSize: '16px', color: '#191f28', fontWeight: '500' },
-  chevron: { fontSize: '14px', color: '#b0b8c1' },
-  tabBar: { position: 'absolute', bottom: 0, left: 0, width: '100%', height: '64px', borderTop: '1px solid #f2f4f6', backgroundColor: '#ffffff', display: 'flex', paddingBottom: '8px' },
-  tabItem: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifycontent: 'center', cursor: 'pointer' },
+  listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid #e5e5ea', cursor: 'pointer' },
+  listItemContent: { display: 'flex', flexDirection: 'column' },
+  listGeneric: { fontSize: '17px', color: '#000', fontWeight: '500', marginBottom: '4px' },
+  listBrand: { fontSize: '14px', color: '#8e8e93', fontWeight: '400' },
+  chevron: { fontSize: '16px', color: '#c7c7cc', fontWeight: '600' },
+  
+  // 하단 탭바
+  tabBar: { position: 'absolute', bottom: 0, left: 0, width: '100%', height: '64px', borderTop: '1px solid #e5e5ea', backgroundColor: '#f8f8f8', display: 'flex', paddingBottom: '8px' },
+  tabItem: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
   tabIcon: { fontSize: '20px', marginBottom: '2px' },
-  tabLabel: { fontSize: '11px', fontWeight: '600' },
-  inlineBackButton: { border: 'none', backgroundColor: 'transparent', color: '#007aff', fontSize: '20px', fontWeight: '400', cursor: 'pointer', padding: '4px 0 12px 4px', display: 'block', textAlign: 'left' },
-  detailTitle: { fontSize: '32px', fontWeight: '700', color: '#191f28', margin: '0 0 20px 4px' },
-  detailCard: { backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid #e5e8eb', padding: '10px 20px', boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)' },
-  infoRow: { padding: '16px 0', borderBottom: '1px solid #f2f4f6' },
-  infoLabel: { fontSize: '12px', color: '#8b95a1', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' },
-  infoValue: { fontSize: '18px', color: '#333d4b', fontWeight: '500', lineHeight: '1.3' },
+  tabLabel: { fontSize: '10px', fontWeight: '600' },
+
+  // 상태 메시지
+  emptyContainer: { textAlign: 'center', paddingTop: '100px' },
+  emptyIcon: { fontSize: '48px', marginBottom: '12px', opacity: 0.3 },
+  emptyText: { fontSize: '16px', color: '#8e8e93', fontWeight: '500' },
+  loadingText: { textAlign: 'center', padding: '30px', color: '#8e8e93' },
+  errorText: { padding: '14px', margin: '10px 20px', backgroundColor: '#ffebeb', color: '#ff3b30', borderRadius: '12px', fontSize: '14px', fontWeight: '500', textAlign: 'center' },
+
+  /* 💎💎💎 프리미엄 상세 화면 스타일 💎💎💎 */
+  detailNavBar: { display: 'flex', alignItems: 'center', height: '56px', padding: '0 10px', backgroundColor: '#F2F2F7' },
+  navBackButton: { border: 'none', backgroundColor: 'transparent', color: '#007aff', fontSize: '17px', fontWeight: '400', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px' },
+  detailScrollArea: { flex: 1, overflowY: 'auto', paddingBottom: '40px' },
   
-  // Brand Name과 규제 등급을 수평 정렬하기 위한 컨테이너 스타일
-  brandRowWrapper: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
-  brandHighlight: { fontSize: '26px', color: '#007aff', fontWeight: '700' },
+  detailTitleArea: { padding: '4px 20px 16px 20px' },
+  detailMainTitle: { fontSize: '34px', fontWeight: '800', color: '#000', margin: 0, letterSpacing: '-0.5px' },
+
+  // 독립된 하얀색 카드들
+  premiumCard: { backgroundColor: '#ffffff', borderRadius: '16px', padding: '16px 20px', margin: '0 16px 16px 16px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' },
+  cardRow: { paddingBottom: '16px', marginBottom: '16px', borderBottom: '1px solid #f2f2f7' },
+  label: { fontSize: '12px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' },
+  valueText: { fontSize: '17px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.4' },
   
-  // 목업과 일치시킨 우측 강렬한 레드 컨트롤 등급 스타일
-  controlDrugBadge: { fontSize: '26px', color: '#ff3b30', fontWeight: '800', paddingRight: '4px' },
+  // 이름 영역 강조
+  brandNameWrapper: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  brandNameText: { fontSize: '24px', color: '#007aff', fontWeight: '700', letterSpacing: '-0.3px' },
+  genericNameText: { fontSize: '22px', color: '#34c759', fontWeight: '700', letterSpacing: '-0.3px' },
   
-  genericHighlight: { fontSize: '22px', color: '#34c759', fontWeight: '700' },
-  subCategoryTreeRow: { display: 'flex', alignItems: 'center', marginTop: '6px' },
-  treeSymbol: { color: '#8b95a1', fontFamily: 'monospace', fontSize: '18px', marginRight: '6px', userSelect: 'none' },
-  remarksBox: { fontSize: '15px', color: '#333d4b', fontWeight: '600', lineHeight: '1.5', backgroundColor: '#fff5f5', padding: '14px', borderRadius: '12px', marginTop: '8px' }
+  // 세련된 컨트롤 드럭 배지 (태그 형태)
+  controlBadge: { backgroundColor: '#ffebeb', color: '#ff3b30', fontSize: '15px', fontWeight: '700', padding: '4px 10px', borderRadius: '8px', overflow: 'hidden' },
+
+  // 트리 구조
+  treeWrapper: { display: 'flex', alignItems: 'center', marginTop: '4px' },
+  treeLine: { color: '#c7c7cc', fontFamily: 'monospace', fontSize: '18px', marginRight: '8px' },
+
+  // 중요 정보 카드 (고급스러운 경고 박스)
+  importantCard: { backgroundColor: '#fff7f7', border: '1px solid #ffdfdf', borderRadius: '16px', padding: '18px 20px', margin: '0 16px 16px 16px' },
+  importantHeader: { display: 'flex', alignItems: 'center', marginBottom: '8px' },
+  importantIcon: { color: '#ff3b30', fontSize: '16px', marginRight: '6px' },
+  importantTitle: { fontSize: '12px', color: '#ff3b30', fontWeight: '700', letterSpacing: '0.5px' },
+  importantText: { fontSize: '16px', color: '#3a3a3c', fontWeight: '500', lineHeight: '1.5' }
 };
