@@ -6,7 +6,6 @@ const SUPABASE_URL = 'https://znzgptzwbumcbfmnmrfs.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_kx5_uc3eHDnzaAQVRD1d6Q_mdKuvc8w'; 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 🎨 얇고 세련된 느낌의 하단 탭 아이콘 (strokeWidth: 1.5)
 const SearchIcon = ({ color, size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
     <circle cx="11" cy="11" r="8" />
@@ -21,7 +20,6 @@ const HistoryIcon = ({ color, size = 24 }) => (
   </svg>
 );
 
-// ✨ 수정됨: 투박한 삼각형 대신 "통제/보안"을 의미하는 세련된 열쇠구멍 방패(Shield) 아이콘
 const ControlTabIcon = ({ color, isActive, size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={isActive ? color : "none"} fillOpacity={isActive ? "0.1" : "0"} stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -30,20 +28,19 @@ const ControlTabIcon = ({ color, isActive, size = 24 }) => (
   </svg>
 );
 
-// ✨ 수정됨: 까만 테두리를 없애고, C는 적당한 굵기로, 숫자는 크고 뚜렷하게(Helvetica 적용)
+// ✨ 업데이트: C는 얇게(300), 로마 숫자는 아주 굵게(900) 대비를 줌
 const DEABadge = ({ schedule, size = 26, marginLeft = '6px' }) => {
   if (!schedule) return null;
   const s = schedule.toUpperCase();
   let color = '#000000';
   let num = '';
   
-  if (s.includes('C-II') && !s.includes('C-III')) { color = '#ff3b30'; num = 'II'; } // 빨강
-  else if (s.includes('C-III')) { color = '#d97706'; num = 'III'; } // 흰 바탕에 잘 보이는 짙은 황금빛 노랑
-  else if (s.includes('C-IV')) { color = '#d97706'; num = 'IV'; } // 노랑
-  else if (s.includes('C-V')) { color = '#1c1c1e'; num = 'V'; } // 검정 (진한 회색)
+  if (s.includes('C-II') && !s.includes('C-III')) { color = '#ff3b30'; num = 'II'; }
+  else if (s.includes('C-III')) { color = '#d97706'; num = 'III'; }
+  else if (s.includes('C-IV')) { color = '#d97706'; num = 'IV'; }
+  else if (s.includes('C-V')) { color = '#1c1c1e'; num = 'V'; }
   else return null;
 
-  // III는 너비가 넓으므로 약간의 크기 조정
   const isThree = num === 'III';
 
   return (
@@ -52,24 +49,24 @@ const DEABadge = ({ schedule, size = 26, marginLeft = '6px' }) => {
       display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
       flexShrink: 0, marginLeft: marginLeft
     }}>
-      {/* C 마크: 너무 뭉뚱그려지지 않는 둥글고 세련된 폰트 (weight: 500) */}
+      {/* C 마크는 얇게 (Light - 300) */}
       <span style={{ 
         color: color, 
         fontSize: `${size * 1.15}px`, 
         fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', 
-        fontWeight: '500', 
+        fontWeight: '300', 
         lineHeight: 1, 
         marginRight: `${size * 0.1}px`
       }}>C</span>
       
-      {/* 로마 숫자: 한눈에 들어오도록 굵게(700) 하고 크기 대폭 확대 */}
+      {/* 안쪽 로마 숫자는 두껍게 (Black - 900) */}
       <span style={{ 
         color: color, 
         fontSize: `${size * (isThree ? 0.38 : 0.45)}px`, 
         fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', 
-        fontWeight: '700', 
+        fontWeight: '900', 
         position: 'absolute', 
-        left: `${size * (isThree ? 0.38 : 0.45)}px`, 
+        left: `${size * (isThree ? 0.37 : 0.44)}px`, 
         top: '50%', 
         transform: 'translateY(-50%)', 
         letterSpacing: isThree ? '-0.5px' : '0px'
@@ -84,7 +81,7 @@ export default function App() {
 
   const [currentScreen, setCurrentScreen] = useState('main'); 
   const [activeTab, setActiveTab] = useState('search'); 
-  const [controlFilter, setControlFilter] = useState('All');
+  const [controlFilter, setControlFilter] = useState('All'); // 'All', 'II', 'III & IV', 'V'
   
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -196,12 +193,13 @@ export default function App() {
     </div>
   );
 
+  // ✨ 업데이트: 로마 숫자로 된 탭 이름에 맞춘 필터링 로직
   const filteredControlledDrugs = controlledDrugs.filter((drug) => {
     if (controlFilter === 'All') return true;
     const str = (drug.control_drug || '').toUpperCase();
-    if (controlFilter === 'C-II') return str.includes('C-II') && !str.includes('C-III');
-    if (controlFilter === 'C-III&IV') return str.includes('C-III') || str.includes('C-IV');
-    if (controlFilter === 'C-V') return str.includes('C-V') && !str.includes('C-IV');
+    if (controlFilter === 'II') return str.includes('C-II') && !str.includes('C-III');
+    if (controlFilter === 'III & IV') return str.includes('C-III') || str.includes('C-IV');
+    if (controlFilter === 'V') return str.includes('C-V') && !str.includes('C-IV');
     return true;
   });
 
@@ -237,27 +235,17 @@ export default function App() {
               </div>
             )}
 
-            {/* ✨ 수정됨: 텍스트 대신 실제 심볼 로고로 그려지는 서브 탭! */}
+            {/* ✨ 업데이트: 심볼을 빼고 깔끔하게 로마 숫자로만 구성된 서브 탭! */}
             {activeTab === 'control' && (
               <div style={styles.segmentedControlContainer}>
                 <div style={styles.segmentedControl}>
-                  {['All', 'C-II', 'C-III&IV', 'C-V'].map((tab) => (
+                  {['All', 'II', 'III & IV', 'V'].map((tab) => (
                     <div 
                       key={tab} 
                       onClick={() => setControlFilter(tab)}
                       style={{ ...styles.segmentBtn, ...(controlFilter === tab ? styles.segmentBtnActive : {}) }}
                     >
-                      {/* All 탭만 글씨로, 나머지는 마진을 뺀 심볼로 가운데 정렬 표시 */}
-                      {tab === 'All' && <span style={{ fontSize: '13px', fontWeight: '700' }}>All</span>}
-                      {tab === 'C-II' && <DEABadge schedule="C-II" size={20} marginLeft="0px" />}
-                      {tab === 'C-III&IV' && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                          <DEABadge schedule="C-III" size={18} marginLeft="0px" />
-                          <span style={{ fontSize: '12px', color: '#8e8e93', fontWeight: '500' }}>&</span>
-                          <DEABadge schedule="C-IV" size={18} marginLeft="0px" />
-                        </div>
-                      )}
-                      {tab === 'C-V' && <DEABadge schedule="C-V" size={20} marginLeft="0px" />}
+                      <span style={{ fontSize: '13px', fontWeight: '700' }}>{tab}</span>
                     </div>
                   ))}
                 </div>
@@ -440,7 +428,7 @@ const getStyles = (isSmall) => ({
   listWrapper: { padding: '0 20px' },
   listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isSmall ? '6px 0' : '8px 0', borderBottom: '1px solid #e5e5ea', cursor: 'pointer' },
   listItemContent: { display: 'flex', flexDirection: 'column', flex: 1, paddingRight: '12px' },
-  listTitleRow: { display: 'flex', alignItems: 'center', marginBottom: '0px' }, // 글씨와 배지의 높이를 수평으로 맞추기 위해 center 적용
+  listTitleRow: { display: 'flex', alignItems: 'center', marginBottom: '0px' }, 
   listGeneric: { fontSize: isSmall ? '15px' : '16px', color: '#000', fontWeight: '500', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.2', wordBreak: 'break-word' },
   listBrand: { fontSize: isSmall ? '12px' : '13px', color: '#8e8e93', fontWeight: '400', marginTop: '2px' },
   chevron: { fontSize: '14px', color: '#c7c7cc', fontWeight: '600' },
@@ -468,7 +456,7 @@ const getStyles = (isSmall) => ({
   label: { fontSize: isSmall ? '11px' : '12px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: isSmall ? '4px' : '6px' },
   valueText: { fontSize: isSmall ? '15px' : '17px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.3' },
   
-  brandNameWrapper: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  brandNameWrapper: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
   brandNameText: { fontSize: isSmall ? '20px' : '24px', color: '#007aff', fontWeight: '700', letterSpacing: '-0.3px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'break-word', marginRight: '8px' },
   genericNameText: { fontSize: isSmall ? '18px' : '22px', color: '#34c759', fontWeight: '700', letterSpacing: '-0.3px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.3', wordBreak: 'break-word' },
   
