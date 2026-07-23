@@ -28,7 +28,6 @@ const ControlTabIcon = ({ color, isActive, size = 24 }) => (
   </svg>
 );
 
-// ✨ 업데이트: C는 얇게(300), 로마 숫자는 아주 굵게(900) 대비를 줌
 const DEABadge = ({ schedule, size = 26, marginLeft = '6px' }) => {
   if (!schedule) return null;
   const s = schedule.toUpperCase();
@@ -49,28 +48,8 @@ const DEABadge = ({ schedule, size = 26, marginLeft = '6px' }) => {
       display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
       flexShrink: 0, marginLeft: marginLeft
     }}>
-      {/* C 마크는 얇게 (Light - 300) */}
-      <span style={{ 
-        color: color, 
-        fontSize: `${size * 1.15}px`, 
-        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', 
-        fontWeight: '300', 
-        lineHeight: 1, 
-        marginRight: `${size * 0.1}px`
-      }}>C</span>
-      
-      {/* 안쪽 로마 숫자는 두껍게 (Black - 900) */}
-      <span style={{ 
-        color: color, 
-        fontSize: `${size * (isThree ? 0.38 : 0.45)}px`, 
-        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', 
-        fontWeight: '900', 
-        position: 'absolute', 
-        left: `${size * (isThree ? 0.37 : 0.44)}px`, 
-        top: '50%', 
-        transform: 'translateY(-50%)', 
-        letterSpacing: isThree ? '-0.5px' : '0px'
-      }}>{num}</span>
+      <span style={{ color: color, fontSize: `${size * 1.15}px`, fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: '300', lineHeight: 1, marginRight: `${size * 0.1}px` }}>C</span>
+      <span style={{ color: color, fontSize: `${size * (isThree ? 0.38 : 0.45)}px`, fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', fontWeight: '900', position: 'absolute', left: `${size * (isThree ? 0.37 : 0.44)}px`, top: '50%', transform: 'translateY(-50%)', letterSpacing: isThree ? '-0.5px' : '0px' }}>{num}</span>
     </div>
   );
 };
@@ -81,7 +60,7 @@ export default function App() {
 
   const [currentScreen, setCurrentScreen] = useState('main'); 
   const [activeTab, setActiveTab] = useState('search'); 
-  const [controlFilter, setControlFilter] = useState('All'); // 'All', 'II', 'III & IV', 'V'
+  const [controlFilter, setControlFilter] = useState('All'); 
   
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -193,7 +172,6 @@ export default function App() {
     </div>
   );
 
-  // ✨ 업데이트: 로마 숫자로 된 탭 이름에 맞춘 필터링 로직
   const filteredControlledDrugs = controlledDrugs.filter((drug) => {
     if (controlFilter === 'All') return true;
     const str = (drug.control_drug || '').toUpperCase();
@@ -235,7 +213,6 @@ export default function App() {
               </div>
             )}
 
-            {/* ✨ 업데이트: 심볼을 빼고 깔끔하게 로마 숫자로만 구성된 서브 탭! */}
             {activeTab === 'control' && (
               <div style={styles.segmentedControlContainer}>
                 <div style={styles.segmentedControl}>
@@ -336,12 +313,8 @@ export default function App() {
             </button>
           </div>
 
+          {/* ✨ 업데이트: 맨 위의 까만 텍스트 타이틀을 삭제하고, 스크롤 상단 여백을 추가했습니다. */}
           <div style={styles.detailScrollArea}>
-            <div style={styles.detailTitleArea}>
-              <h2 style={styles.detailMainTitle}>
-                "{selectedDrug.brand_name || selectedDrug.generic_name}"
-              </h2>
-            </div>
             
             <div style={styles.premiumCard}>
               <div style={styles.cardRow}>
@@ -425,12 +398,13 @@ const getStyles = (isSmall) => ({
 
   scrollArea: { flex: 1, overflowY: 'auto', backgroundColor: '#ffffff' },
   
+  // ✨ 업데이트: 모든 기기에서 공통적으로 더 촘촘한 리스트 간격 적용! (padding: 4px 0 ~ 6px 0)
   listWrapper: { padding: '0 20px' },
-  listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isSmall ? '6px 0' : '8px 0', borderBottom: '1px solid #e5e5ea', cursor: 'pointer' },
+  listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isSmall ? '4px 0' : '6px 0', borderBottom: '1px solid #e5e5ea', cursor: 'pointer' },
   listItemContent: { display: 'flex', flexDirection: 'column', flex: 1, paddingRight: '12px' },
   listTitleRow: { display: 'flex', alignItems: 'center', marginBottom: '0px' }, 
   listGeneric: { fontSize: isSmall ? '15px' : '16px', color: '#000', fontWeight: '500', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.2', wordBreak: 'break-word' },
-  listBrand: { fontSize: isSmall ? '12px' : '13px', color: '#8e8e93', fontWeight: '400', marginTop: '2px' },
+  listBrand: { fontSize: isSmall ? '12px' : '13px', color: '#8e8e93', fontWeight: '400', marginTop: '1px' },
   chevron: { fontSize: '14px', color: '#c7c7cc', fontWeight: '600' },
   clearHistoryBtn: { backgroundColor: 'transparent', color: '#ff3b30', border: 'none', fontSize: '15px', fontWeight: '600', cursor: 'pointer', padding: '8px 16px' },
 
@@ -446,10 +420,8 @@ const getStyles = (isSmall) => ({
   detailNavBar: { flexShrink: 0, display: 'flex', alignItems: 'center', height: 'calc(44px + env(safe-area-inset-top, 0px))', paddingTop: 'env(safe-area-inset-top, 0px)', paddingRight: '10px', paddingLeft: '10px', backgroundColor: '#F2F2F7' },
   navBackButton: { border: 'none', backgroundColor: 'transparent', color: '#007aff', fontSize: '17px', fontWeight: '400', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px' },
   
-  detailScrollArea: { flex: 1, overflowY: 'auto', paddingBottom: 'calc(40px + env(safe-area-inset-bottom, 0px))' },
-  
-  detailTitleArea: { padding: `4px 20px ${isSmall ? '12px' : '16px'} 20px` },
-  detailMainTitle: { fontSize: isSmall ? '28px' : '34px', fontWeight: '800', color: '#000', margin: 0, letterSpacing: '-0.5px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+  // ✨ 업데이트: 타이틀 삭제 후, 카드가 내비게이션 바에 너무 붙지 않도록 상단 여백(paddingTop: 16px) 추가
+  detailScrollArea: { flex: 1, overflowY: 'auto', paddingTop: '16px', paddingBottom: 'calc(40px + env(safe-area-inset-bottom, 0px))' },
   
   premiumCard: { backgroundColor: '#ffffff', borderRadius: '16px', padding: isSmall ? '12px 16px' : '16px 20px', margin: isSmall ? '0 16px 12px 16px' : '0 16px 16px 16px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' },
   cardRow: { paddingBottom: isSmall ? '10px' : '16px', marginBottom: isSmall ? '10px' : '16px', borderBottom: '1px solid #f2f2f7' },
