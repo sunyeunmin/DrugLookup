@@ -125,7 +125,6 @@ export default function App() {
         <div style={styles.flexLayout}>
           
           <div style={{ ...styles.scrollArea, padding: '16px' }}>
-            {/* 목업 스타일을 반영한 새로운 상단 배치 (네비바 삭제) */}
             <button onClick={() => setCurrentScreen('search')} style={styles.inlineBackButton}>
               &lt; Back
             </button>
@@ -135,10 +134,16 @@ export default function App() {
             </h2>
             
             <div style={styles.detailCard}>
-              {/* 1. Brand Name */}
+              {/* 1. Brand Name & Control Drug 배치 구역 */}
               <div style={styles.infoRow}>
                 <div style={styles.infoLabel}>Brand Name</div>
-                <div style={styles.brandHighlight}>{selectedDrug.brand_name || 'N/A'}</div>
+                <div style={styles.brandRowWrapper}>
+                  <div style={styles.brandHighlight}>{selectedDrug.brand_name || 'N/A'}</div>
+                  {/* control_drug 값이 존재할 경우 우측에 빨간색 큰 글씨로 바인딩 */}
+                  {selectedDrug.control_drug && (
+                    <div style={styles.controlDrugBadge}>{selectedDrug.control_drug}</div>
+                  )}
+                </div>
               </div>
 
               {/* 2. Generic Name */}
@@ -147,7 +152,7 @@ export default function App() {
                 <div style={styles.genericHighlight}>{selectedDrug.generic_name || '-'}</div>
               </div>
 
-              {/* 3. Category & Sub Category 구조화 레이아웃 */}
+              {/* 3. Category & Sub Category */}
               <div style={styles.infoRow}>
                 <div style={styles.infoLabel}>Category</div>
                 <div style={styles.infoValue}>{selectedDrug.category || '-'}</div>
@@ -203,23 +208,28 @@ const styles = {
   loadingText: { textAlign: 'center', padding: '30px', color: '#8b95a1' },
   errorText: { padding: '14px', margin: '10px 20px', backgroundColor: '#fff5f5', color: '#ff3b30', borderRadius: '8px', fontSize: '14px', fontWeight: '500', textAlign: 'center' },
   listWrapper: { padding: '0 20px' },
-  listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 4px', borderBottom: '1px solid #f2f4f6', cursor: 'pointer' },
+  listItem: { display: 'flex', justifycontent: 'space-between', alignItems: 'center', padding: '18px 4px', borderBottom: '1px solid #f2f4f6', cursor: 'pointer' },
   listItemText: { fontSize: '16px', color: '#191f28', fontWeight: '500' },
   chevron: { fontSize: '14px', color: '#b0b8c1' },
   tabBar: { position: 'absolute', bottom: 0, left: 0, width: '100%', height: '64px', borderTop: '1px solid #f2f4f6', backgroundColor: '#ffffff', display: 'flex', paddingBottom: '8px' },
-  tabItem: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
+  tabItem: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifycontent: 'center', cursor: 'pointer' },
   tabIcon: { fontSize: '20px', marginBottom: '2px' },
   tabLabel: { fontSize: '11px', fontWeight: '600' },
-  // 목업 화면과 일치시킨 상단 배치용 뒤로가기 스타일
   inlineBackButton: { border: 'none', backgroundColor: 'transparent', color: '#007aff', fontSize: '20px', fontWeight: '400', cursor: 'pointer', padding: '4px 0 12px 4px', display: 'block', textAlign: 'left' },
   detailTitle: { fontSize: '32px', fontWeight: '700', color: '#191f28', margin: '0 0 20px 4px' },
   detailCard: { backgroundColor: '#ffffff', borderRadius: '24px', border: '1px solid #e5e8eb', padding: '10px 20px', boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)' },
   infoRow: { padding: '16px 0', borderBottom: '1px solid #f2f4f6' },
   infoLabel: { fontSize: '12px', color: '#8b95a1', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' },
   infoValue: { fontSize: '18px', color: '#333d4b', fontWeight: '500', lineHeight: '1.3' },
+  
+  // Brand Name과 규제 등급을 수평 정렬하기 위한 컨테이너 스타일
+  brandRowWrapper: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
   brandHighlight: { fontSize: '26px', color: '#007aff', fontWeight: '700' },
+  
+  // 목업과 일치시킨 우측 강렬한 레드 컨트롤 등급 스타일
+  controlDrugBadge: { fontSize: '26px', color: '#ff3b30', fontWeight: '800', paddingRight: '4px' },
+  
   genericHighlight: { fontSize: '22px', color: '#34c759', fontWeight: '700' },
-  // 카테고리 트리 구조 시각화 스타일
   subCategoryTreeRow: { display: 'flex', alignItems: 'center', marginTop: '6px' },
   treeSymbol: { color: '#8b95a1', fontFamily: 'monospace', fontSize: '18px', marginRight: '6px', userSelect: 'none' },
   remarksBox: { fontSize: '15px', color: '#333d4b', fontWeight: '600', lineHeight: '1.5', backgroundColor: '#fff5f5', padding: '14px', borderRadius: '12px', marginTop: '8px' }
