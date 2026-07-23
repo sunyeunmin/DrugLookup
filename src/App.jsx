@@ -6,35 +6,59 @@ const SUPABASE_URL = 'https://znzgptzwbumcbfmnmrfs.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_kx5_uc3eHDnzaAQVRD1d6Q_mdKuvc8w'; 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ✨ 신규: 공식 DEA Schedule 마크를 완벽히 구현한 컴포넌트!
+// 🎨 고급스러운 SVG 아이콘 컴포넌트 모음 (이모지 대체)
+const SearchIcon = ({ color, size = 24 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+);
+
+const HistoryIcon = ({ color, size = 24 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+
+// ✨ 요청하신 '세련된 삼각형 경고 마크' (선택 시 안쪽이 은은하게 채워짐)
+const ControlTabIcon = ({ color, isActive, size = 24 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
+    {/* 선택 시 안쪽에 부드러운 파스텔톤 채우기 효과 */}
+    {isActive && <path d="M12 6L4.5 19.5H19.5L12 6Z" fill={color} fillOpacity="0.2" stroke="none" />}
+    {/* 메인 삼각형 테두리 */}
+    <path d="M12 6L4.5 19.5H19.5L12 6Z" />
+    {/* 상단 3줄기 빛 (Rays) */}
+    <line x1="12" y1="1" x2="12" y2="3" />
+    <line x1="6.5" y1="3.5" x2="8.5" y2="5.5" />
+    <line x1="17.5" y1="3.5" x2="15.5" y2="5.5" />
+    {/* 내부 느낌표 */}
+    <line x1="12" y1="10" x2="12" y2="14.5" />
+    <circle cx="12" cy="17.5" r="1.5" fill={color} stroke="none" />
+  </svg>
+);
+
+// 공식 DEA Schedule 마크 컴포넌트
 const DEABadge = ({ schedule, size = 26 }) => {
   if (!schedule) return null;
   const s = schedule.toUpperCase();
   let color = '#000000';
   let num = '';
   
-  if (s.includes('C-II') && !s.includes('C-III')) { color = '#ff3b30'; num = 'II'; } // 빨간색
-  else if (s.includes('C-III')) { color = '#e6a800'; num = 'III'; } // 노란색 (가독성 위해 짙은 노랑)
-  else if (s.includes('C-IV')) { color = '#e6a800'; num = 'IV'; } // 노란색
-  else if (s.includes('C-V')) { color = '#000000'; num = 'V'; } // 검은색
+  if (s.includes('C-II') && !s.includes('C-III')) { color = '#ff3b30'; num = 'II'; }
+  else if (s.includes('C-III')) { color = '#e6a800'; num = 'III'; }
+  else if (s.includes('C-IV')) { color = '#e6a800'; num = 'IV'; }
+  else if (s.includes('C-V')) { color = '#000000'; num = 'V'; }
   else return null;
 
   return (
     <div style={{
-      width: `${size}px`, height: `${size}px`, 
-      borderRadius: '50%', border: '1px solid #191f28',
+      width: `${size}px`, height: `${size}px`, borderRadius: '50%', border: '1px solid #191f28',
       display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
       flexShrink: 0, marginLeft: '6px', backgroundColor: '#ffffff', overflow: 'hidden'
     }}>
-      <span style={{ 
-        color: color, fontSize: `${size * 0.9}px`, fontFamily: '"Times New Roman", Times, serif', 
-        lineHeight: 1, marginRight: `${size * 0.15}px`, marginTop: '-1px'
-      }}>C</span>
-      <span style={{ 
-        color: color, fontSize: `${size * 0.35}px`, fontFamily: '"Times New Roman", Times, serif', 
-        fontWeight: 'bold', position: 'absolute', left: `${size * 0.44}px`, 
-        top: '50%', transform: 'translateY(-50%)', letterSpacing: '-0.5px'
-      }}>{num}</span>
+      <span style={{ color: color, fontSize: `${size * 0.9}px`, fontFamily: '"Times New Roman", Times, serif', lineHeight: 1, marginRight: `${size * 0.15}px`, marginTop: '-1px' }}>C</span>
+      <span style={{ color: color, fontSize: `${size * 0.35}px`, fontFamily: '"Times New Roman", Times, serif', fontWeight: 'bold', position: 'absolute', left: `${size * 0.44}px`, top: '50%', transform: 'translateY(-50%)', letterSpacing: '-0.5px' }}>{num}</span>
     </div>
   );
 };
@@ -45,8 +69,6 @@ export default function App() {
 
   const [currentScreen, setCurrentScreen] = useState('main'); 
   const [activeTab, setActiveTab] = useState('search'); 
-  
-  // ✨ 업데이트: 필터 탭 이름 정확히 맞춤
   const [controlFilter, setControlFilter] = useState('전체');
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -149,7 +171,6 @@ export default function App() {
                }}>
                 {drug.generic_name}
               </span>
-              {/* ✨ 리스트용 DEA 마크 렌더링 (사이즈 24) */}
               <DEABadge schedule={drug.control_drug} size={24} />
             </div>
             {drug.brand_name && <span style={styles.listBrand}>{drug.brand_name}</span>}
@@ -160,7 +181,6 @@ export default function App() {
     </div>
   );
 
-  // ✨ 업데이트: 서브 탭 필터링 로직 (정확한 탭 이름 매칭)
   const filteredControlledDrugs = controlledDrugs.filter((drug) => {
     if (controlFilter === '전체') return true;
     const str = (drug.control_drug || '').toUpperCase();
@@ -187,7 +207,7 @@ export default function App() {
             {activeTab === 'search' && (
               <div style={styles.searchContainer}>
                 <div style={styles.searchBarWrapper}>
-                  <span style={styles.searchIcon}>🔍</span>
+                  <SearchIcon color="#8e8e93" size={16} />
                   <input
                     type="text"
                     placeholder="Enter drug name (e.g., 'val')..."
@@ -202,7 +222,6 @@ export default function App() {
               </div>
             )}
 
-            {/* ✨ 업데이트: 변경된 탭 이름 적용 */}
             {activeTab === 'control' && (
               <div style={styles.segmentedControlContainer}>
                 <div style={styles.segmentedControl}>
@@ -221,12 +240,13 @@ export default function App() {
           </div>
 
           <div style={styles.scrollArea}>
+            
             {activeTab === 'search' && (
               <>
                 {errorMessage && <div style={styles.errorText}>{errorMessage}</div>}
                 {searchQuery.trim().length < 2 ? (
                   <div style={styles.emptyContainer}>
-                    <div style={styles.emptyIcon}>💊</div>
+                    <SearchIcon color="#c7c7cc" size={56} />
                     <p style={styles.emptyText}>Type at least 2 letters to search.</p>
                   </div>
                 ) : isLoading ? (
@@ -246,7 +266,7 @@ export default function App() {
             {activeTab === 'history' && (
               history.length === 0 ? (
                 <div style={styles.emptyContainer}>
-                  <div style={styles.emptyIcon}>🕒</div>
+                  <HistoryIcon color="#c7c7cc" size={56} />
                   <p style={styles.emptyText}>No recent history.</p>
                 </div>
               ) : (
@@ -266,7 +286,7 @@ export default function App() {
                 <div style={styles.loadingText}>Loading controlled drugs...</div>
               ) : filteredControlledDrugs.length === 0 ? (
                 <div style={styles.emptyContainer}>
-                  <div style={styles.emptyIcon}>🛡️</div>
+                  <ControlTabIcon color="#c7c7cc" isActive={false} size={56} />
                   <p style={styles.emptyText}>No drugs match this filter.</p>
                 </div>
               ) : (
@@ -277,15 +297,16 @@ export default function App() {
 
           <div style={styles.tabBar}>
             <div onClick={() => setActiveTab('search')} style={{ ...styles.tabItem, color: activeTab === 'search' ? '#007aff' : '#8e8e93' }}>
-              <span style={styles.tabIcon}>🔍</span>
+              <SearchIcon color={activeTab === 'search' ? '#007aff' : '#8e8e93'} size={24} />
               <span style={styles.tabLabel}>Search</span>
             </div>
             <div onClick={() => setActiveTab('history')} style={{ ...styles.tabItem, color: activeTab === 'history' ? '#007aff' : '#8e8e93' }}>
-              <span style={styles.tabIcon}>🕒</span>
+              <HistoryIcon color={activeTab === 'history' ? '#007aff' : '#8e8e93'} size={24} />
               <span style={styles.tabLabel}>History</span>
             </div>
             <div onClick={() => { setActiveTab('control'); setControlFilter('전체'); }} style={{ ...styles.tabItem, color: activeTab === 'control' ? '#ff3b30' : '#8e8e93' }}>
-              <span style={styles.tabIcon}>🛡️</span>
+              {/* ✨ 탭을 클릭하면 isActive 속성이 true로 전달되어 예쁘게 채워집니다 */}
+              <ControlTabIcon color={activeTab === 'control' ? '#ff3b30' : '#8e8e93'} isActive={activeTab === 'control'} size={24} />
               <span style={styles.tabLabel}>Control</span>
             </div>
           </div>
@@ -314,7 +335,6 @@ export default function App() {
                 <div style={styles.label}>Brand Name</div>
                 <div style={styles.brandNameWrapper}>
                   <div style={styles.brandNameText}>{selectedDrug.brand_name || 'N/A'}</div>
-                  {/* ✨ 상세화면용 DEA 마크 렌더링 (사이즈 32로 더 크게) */}
                   <DEABadge schedule={selectedDrug.control_drug} size={32} />
                 </div>
               </div>
@@ -379,13 +399,12 @@ const getStyles = (isSmall) => ({
   topFixedArea: { flexShrink: 0, backgroundColor: '#ffffff' },
   headerArea: { padding: `max(${isSmall ? '16px' : '20px'}, env(safe-area-inset-top)) 20px 12px 20px` },
   mainTitle: { fontSize: isSmall ? '28px' : '32px', fontWeight: '800', color: '#000000', margin: 0, letterSpacing: '-0.5px' },
+  
   searchContainer: { padding: `4px 20px ${isSmall ? '12px' : '16px'} 20px`, borderBottom: '1px solid #e5e5ea' },
   searchBarWrapper: { position: 'relative', backgroundColor: '#7676801F', borderRadius: '10px', padding: '8px 12px', display: 'flex', alignItems: 'center' },
-  searchIcon: { fontSize: '16px', marginRight: '6px', color: '#8e8e93' },
-  searchInput: { flex: 1, border: 'none', backgroundColor: 'transparent', fontSize: '17px', outline: 'none', color: '#000' },
+  searchInput: { flex: 1, border: 'none', backgroundColor: 'transparent', fontSize: '17px', outline: 'none', color: '#000', marginLeft: '6px' },
   clearButton: { border: 'none', backgroundColor: '#c7c7cc', color: '#ffffff', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   
-  // Control 화면 서브 탭
   segmentedControlContainer: { padding: '8px 20px 12px 20px', backgroundColor: '#ffffff', borderBottom: '1px solid #e5e5ea' },
   segmentedControl: { display: 'flex', backgroundColor: '#e4e4e9', borderRadius: '8px', padding: '2px' },
   segmentBtn: { flex: 1, textAlign: 'center', padding: '6px 0', fontSize: '12px', fontWeight: '700', color: '#000', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s ease' },
@@ -393,25 +412,21 @@ const getStyles = (isSmall) => ({
 
   scrollArea: { flex: 1, overflowY: 'auto', backgroundColor: '#ffffff' },
   
-  // ✨ 업데이트: 더 촘촘하고 빽빽해진 초고밀도 리스트 간격!
   listWrapper: { padding: '0 20px' },
   listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isSmall ? '6px 0' : '8px 0', borderBottom: '1px solid #e5e5ea', cursor: 'pointer' },
   listItemContent: { display: 'flex', flexDirection: 'column', flex: 1, paddingRight: '12px' },
-  listTitleRow: { display: 'flex', alignItems: 'flex-start', marginBottom: '0px' }, // 마진 제거로 촘촘하게
+  listTitleRow: { display: 'flex', alignItems: 'flex-start', marginBottom: '0px' }, 
   listGeneric: { fontSize: isSmall ? '15px' : '16px', color: '#000', fontWeight: '500', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.2', wordBreak: 'break-word' },
-  
   listBrand: { fontSize: isSmall ? '12px' : '13px', color: '#8e8e93', fontWeight: '400', marginTop: '2px' },
   chevron: { fontSize: '14px', color: '#c7c7cc', fontWeight: '600' },
   clearHistoryBtn: { backgroundColor: 'transparent', color: '#ff3b30', border: 'none', fontSize: '15px', fontWeight: '600', cursor: 'pointer', padding: '8px 16px' },
 
   tabBar: { flexShrink: 0, height: 'calc(54px + env(safe-area-inset-bottom, 0px))', paddingBottom: 'env(safe-area-inset-bottom, 0px)', borderTop: '1px solid #e5e5ea', backgroundColor: '#f8f8f8', display: 'flex' },
   tabItem: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'color 0.2s ease' },
-  tabIcon: { fontSize: '20px', marginBottom: '2px' },
   tabLabel: { fontSize: '10px', fontWeight: '600' },
   
-  emptyContainer: { textAlign: 'center', paddingTop: '80px' },
-  emptyIcon: { fontSize: '48px', marginBottom: '12px', opacity: 0.3 },
-  emptyText: { fontSize: '16px', color: '#8e8e93', fontWeight: '500' },
+  emptyContainer: { textAlign: 'center', paddingTop: '80px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+  emptyText: { fontSize: '16px', color: '#8e8e93', fontWeight: '500', marginTop: '12px' },
   loadingText: { textAlign: 'center', padding: '30px', color: '#8e8e93' },
   errorText: { padding: '14px', margin: '10px 20px', backgroundColor: '#ffebeb', color: '#ff3b30', borderRadius: '12px', fontSize: '14px', fontWeight: '500', textAlign: 'center' },
 
