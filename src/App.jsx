@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// 1. Supabase 설정 (유지)
+// 1. Supabase 설정
 const SUPABASE_URL = 'https://znzgptzwbumcbfmnmrfs.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_kx5_uc3eHDnzaAQVRD1d6Q_mdKuvc8w'; 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -67,7 +67,7 @@ export default function App() {
             <span style={styles.searchIcon}>🔍</span>
             <input
               type="text"
-              placeholder="Enter drug name (e.g., 'Ato')..."
+              placeholder="Enter drug name (e.g., 'val')..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={styles.searchInput}
@@ -92,7 +92,13 @@ export default function App() {
                 {searchResults.map((drug) => (
                   <div key={drug.id} onClick={() => { setSelectedDrug(drug); setCurrentScreen('detail'); }} style={styles.listItem}>
                     <div style={styles.listItemContent}>
-                      <span style={styles.listGeneric}>{drug.generic_name}</span>
+                      {/* Generic Name과 미니 배지를 한 줄로 묶음 */}
+                      <div style={styles.listTitleRow}>
+                        <span style={styles.listGeneric}>{drug.generic_name}</span>
+                        {drug.control_drug && (
+                          <span style={styles.listControlBadge}>{drug.control_drug}</span>
+                        )}
+                      </div>
                       {drug.brand_name && <span style={styles.listBrand}>{drug.brand_name}</span>}
                     </div>
                     <span style={styles.chevron}>❯</span>
@@ -113,7 +119,7 @@ export default function App() {
               <span style={styles.tabIcon}>🔍</span>
               <span style={styles.tabLabel}>Search</span>
             </div>
-            <div style={{ ...styles.tabItem, color: '#8b95a1' }}>
+            <div style={{ ...styles.tabItem, color: '#8e8e93' }}>
               <span style={styles.tabIcon}>🕒</span>
               <span style={styles.tabLabel}>History</span>
             </div>
@@ -125,7 +131,6 @@ export default function App() {
       {currentScreen === 'detail' && selectedDrug && (
         <div style={styles.flexLayout}>
           
-          {/* 상단 네비게이션 바 (깔끔하게 고정) */}
           <div style={styles.detailNavBar}>
             <button onClick={() => setCurrentScreen('search')} style={styles.navBackButton}>
               <span style={{ fontSize: '20px', marginRight: '4px' }}>‹</span> Back
@@ -134,20 +139,17 @@ export default function App() {
 
           <div style={styles.detailScrollArea}>
             
-            {/* 타이틀 영역 */}
             <div style={styles.detailTitleArea}>
               <h2 style={styles.detailMainTitle}>
                 "{selectedDrug.brand_name || selectedDrug.generic_name}"
               </h2>
             </div>
             
-            {/* 💎 카드 1: 핵심 이름 정보 (Brand & Generic) */}
             <div style={styles.premiumCard}>
               <div style={styles.cardRow}>
                 <div style={styles.label}>Brand Name</div>
                 <div style={styles.brandNameWrapper}>
                   <div style={styles.brandNameText}>{selectedDrug.brand_name || 'N/A'}</div>
-                  {/* 세련된 배지 스타일의 Control Drug 표시 */}
                   {selectedDrug.control_drug && (
                     <div style={styles.controlBadge}>
                       {selectedDrug.control_drug}
@@ -161,7 +163,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* 📦 카드 2: 카테고리 트리 구조 */}
             <div style={styles.premiumCard}>
               <div style={{ ...styles.cardRow, borderBottom: 'none', paddingBottom: 0 }}>
                 <div style={styles.label}>Category</div>
@@ -175,7 +176,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* 🧬 카드 3: 분류 및 적응증 */}
             <div style={styles.premiumCard}>
               <div style={styles.cardRow}>
                 <div style={styles.label}>Classification</div>
@@ -187,7 +187,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* 🚨 카드 4: 중요 정보 (눈에 띄면서도 고급스럽게) */}
             <div style={styles.importantCard}>
               <div style={styles.importantHeader}>
                 <span style={styles.importantIcon}>★</span>
@@ -205,9 +204,8 @@ export default function App() {
   );
 }
 
-// 🎨 프리미엄 유료 앱 스타일링
+// 🎨 스타일링
 const styles = {
-  // 공통 및 검색 화면
   mobileContainer: { width: '100vw', height: '100vh', backgroundColor: '#F2F2F7', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', overflow: 'hidden', position: 'relative', boxSizing: 'border-box' },
   flexLayout: { display: 'flex', flexDirection: 'column', width: '100%', height: '100%' },
   headerArea: { padding: '24px 20px 12px 20px', backgroundColor: '#ffffff' },
@@ -218,54 +216,44 @@ const styles = {
   clearButton: { border: 'none', backgroundColor: '#c7c7cc', color: '#ffffff', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   scrollArea: { flex: 1, overflowY: 'auto', paddingBottom: '70px', backgroundColor: '#ffffff' },
   
-  // 리스트 아이템 디자인 개선
+  // 리스트 아이템 관련 추가/수정 스타일
   listWrapper: { padding: '0 20px' },
   listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid #e5e5ea', cursor: 'pointer' },
   listItemContent: { display: 'flex', flexDirection: 'column' },
-  listGeneric: { fontSize: '17px', color: '#000', fontWeight: '500', marginBottom: '4px' },
+  listTitleRow: { display: 'flex', alignItems: 'center', marginBottom: '4px' },
+  listGeneric: { fontSize: '17px', color: '#000', fontWeight: '500' },
+  
+  // 신규: 검색 리스트에 표시되는 작은 컨트롤 드럭 배지
+  listControlBadge: { backgroundColor: '#ffebeb', color: '#ff3b30', fontSize: '11px', fontWeight: '700', padding: '2px 6px', borderRadius: '4px', marginLeft: '8px', overflow: 'hidden' },
+  
   listBrand: { fontSize: '14px', color: '#8e8e93', fontWeight: '400' },
   chevron: { fontSize: '16px', color: '#c7c7cc', fontWeight: '600' },
   
-  // 하단 탭바
   tabBar: { position: 'absolute', bottom: 0, left: 0, width: '100%', height: '64px', borderTop: '1px solid #e5e5ea', backgroundColor: '#f8f8f8', display: 'flex', paddingBottom: '8px' },
   tabItem: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
   tabIcon: { fontSize: '20px', marginBottom: '2px' },
   tabLabel: { fontSize: '10px', fontWeight: '600' },
-
-  // 상태 메시지
   emptyContainer: { textAlign: 'center', paddingTop: '100px' },
   emptyIcon: { fontSize: '48px', marginBottom: '12px', opacity: 0.3 },
   emptyText: { fontSize: '16px', color: '#8e8e93', fontWeight: '500' },
   loadingText: { textAlign: 'center', padding: '30px', color: '#8e8e93' },
   errorText: { padding: '14px', margin: '10px 20px', backgroundColor: '#ffebeb', color: '#ff3b30', borderRadius: '12px', fontSize: '14px', fontWeight: '500', textAlign: 'center' },
 
-  /* 💎💎💎 프리미엄 상세 화면 스타일 💎💎💎 */
   detailNavBar: { display: 'flex', alignItems: 'center', height: '56px', padding: '0 10px', backgroundColor: '#F2F2F7' },
   navBackButton: { border: 'none', backgroundColor: 'transparent', color: '#007aff', fontSize: '17px', fontWeight: '400', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px' },
   detailScrollArea: { flex: 1, overflowY: 'auto', paddingBottom: '40px' },
-  
   detailTitleArea: { padding: '4px 20px 16px 20px' },
   detailMainTitle: { fontSize: '34px', fontWeight: '800', color: '#000', margin: 0, letterSpacing: '-0.5px' },
-
-  // 독립된 하얀색 카드들
   premiumCard: { backgroundColor: '#ffffff', borderRadius: '16px', padding: '16px 20px', margin: '0 16px 16px 16px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' },
   cardRow: { paddingBottom: '16px', marginBottom: '16px', borderBottom: '1px solid #f2f2f7' },
   label: { fontSize: '12px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' },
   valueText: { fontSize: '17px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.4' },
-  
-  // 이름 영역 강조
   brandNameWrapper: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   brandNameText: { fontSize: '24px', color: '#007aff', fontWeight: '700', letterSpacing: '-0.3px' },
   genericNameText: { fontSize: '22px', color: '#34c759', fontWeight: '700', letterSpacing: '-0.3px' },
-  
-  // 세련된 컨트롤 드럭 배지 (태그 형태)
   controlBadge: { backgroundColor: '#ffebeb', color: '#ff3b30', fontSize: '15px', fontWeight: '700', padding: '4px 10px', borderRadius: '8px', overflow: 'hidden' },
-
-  // 트리 구조
   treeWrapper: { display: 'flex', alignItems: 'center', marginTop: '4px' },
   treeLine: { color: '#c7c7cc', fontFamily: 'monospace', fontSize: '18px', marginRight: '8px' },
-
-  // 중요 정보 카드 (고급스러운 경고 박스)
   importantCard: { backgroundColor: '#fff7f7', border: '1px solid #ffdfdf', borderRadius: '16px', padding: '18px 20px', margin: '0 16px 16px 16px' },
   importantHeader: { display: 'flex', alignItems: 'center', marginBottom: '8px' },
   importantIcon: { color: '#ff3b30', fontSize: '16px', marginRight: '6px' },
