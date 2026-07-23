@@ -122,7 +122,14 @@ export default function App() {
                       <div key={drug.id} onClick={() => handleDrugSelect(drug)} style={styles.listItem}>
                         <div style={styles.listItemContent}>
                           <div style={styles.listTitleRow}>
-                            <span style={styles.listGeneric}>{drug.generic_name}</span>
+                            {/* ✨ 리스트 화면: 글자 길이에 따른 동적 폰트 사이즈 적용 */}
+                            <span style={{ 
+                              ...styles.listGeneric,
+                              ...(drug.generic_name.length > 40 ? { fontSize: isSmallScreen ? '13px' : '14px' } :
+                                  drug.generic_name.length > 25 ? { fontSize: isSmallScreen ? '14px' : '15px' } : {})
+                             }}>
+                              {drug.generic_name}
+                            </span>
                             {drug.control_drug && <span style={styles.listControlBadge}>{drug.control_drug}</span>}
                           </div>
                           {drug.brand_name && <span style={styles.listBrand}>{drug.brand_name}</span>}
@@ -153,7 +160,13 @@ export default function App() {
                     <div key={`${drug.id}-${index}`} onClick={() => handleDrugSelect(drug)} style={styles.listItem}>
                       <div style={styles.listItemContent}>
                         <div style={styles.listTitleRow}>
-                          <span style={styles.listGeneric}>{drug.generic_name}</span>
+                          <span style={{ 
+                            ...styles.listGeneric,
+                            ...(drug.generic_name.length > 40 ? { fontSize: isSmallScreen ? '13px' : '14px' } :
+                                drug.generic_name.length > 25 ? { fontSize: isSmallScreen ? '14px' : '15px' } : {})
+                           }}>
+                            {drug.generic_name}
+                          </span>
                           {drug.control_drug && <span style={styles.listControlBadge}>{drug.control_drug}</span>}
                         </div>
                         {drug.brand_name && <span style={styles.listBrand}>{drug.brand_name}</span>}
@@ -196,7 +209,9 @@ export default function App() {
 
           <div style={styles.detailScrollArea}>
             <div style={styles.detailTitleArea}>
-              <h2 style={styles.detailMainTitle}>"{selectedDrug.brand_name || selectedDrug.generic_name}"</h2>
+              <h2 style={styles.detailMainTitle}>
+                "{selectedDrug.brand_name || selectedDrug.generic_name}"
+              </h2>
             </div>
             
             <div style={styles.premiumCard}>
@@ -209,7 +224,14 @@ export default function App() {
               </div>
               <div style={{ ...styles.cardRow, borderBottom: 'none', paddingBottom: 0 }}>
                 <div style={styles.label}>Generic Name</div>
-                <div style={styles.genericNameText}>{selectedDrug.generic_name || '-'}</div>
+                {/* ✨ 상세 화면: 글자 길이에 따른 동적 폰트 사이즈 적용 */}
+                <div style={{ 
+                  ...styles.genericNameText,
+                  ...(selectedDrug.generic_name.length > 40 ? { fontSize: isSmallScreen ? '16px' : '17px' } :
+                      selectedDrug.generic_name.length > 25 ? { fontSize: isSmallScreen ? '17px' : '19px' } : {})
+                 }}>
+                  {selectedDrug.generic_name || '-'}
+                </div>
               </div>
             </div>
 
@@ -237,7 +259,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* ✨ remarks 값이 있을 때만 Important Info 카드를 화면에 렌더링하도록 조건부 처리! */}
             {selectedDrug.remarks && selectedDrug.remarks.trim() !== '' && (
               <div style={styles.importantCard}>
                 <div style={styles.importantHeader}>
@@ -273,10 +294,38 @@ const getStyles = (isSmall) => ({
   
   listWrapper: { padding: '0 20px' },
   listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isSmall ? '12px 0' : '16px 0', borderBottom: '1px solid #e5e5ea', cursor: 'pointer' },
-  listItemContent: { display: 'flex', flexDirection: 'column' },
-  listTitleRow: { display: 'flex', alignItems: 'center', marginBottom: '4px' },
-  listGeneric: { fontSize: isSmall ? '16px' : '17px', color: '#000', fontWeight: '500' },
-  listControlBadge: { backgroundColor: '#ffebeb', color: '#ff3b30', fontSize: '11px', fontWeight: '700', padding: '2px 6px', borderRadius: '4px', marginLeft: '8px', overflow: 'hidden' },
+  listItemContent: { display: 'flex', flexDirection: 'column', flex: 1, paddingRight: '12px' }, // 우측 여백 확보
+  
+  // 두 줄이 될 때를 대비하여 alignItems를 'flex-start'로 변경
+  listTitleRow: { display: 'flex', alignItems: 'flex-start', marginBottom: '4px' },
+  
+  // ✨ 핵심: 최대 2줄까지만 표시하고 넘어가면 '...' (말줄임표) 처리하는 속성
+  listGeneric: { 
+    fontSize: isSmall ? '16px' : '17px', 
+    color: '#000', 
+    fontWeight: '500', 
+    display: '-webkit-box', 
+    WebkitLineClamp: 2, // 두 줄 제한
+    WebkitBoxOrient: 'vertical', 
+    overflow: 'hidden', 
+    lineHeight: '1.3', 
+    wordBreak: 'break-word' // 긴 단어도 알아서 잘라서 줄바꿈
+  },
+  
+  // 규제 배지가 긴 글자에 밀려 찌그러지지 않도록 flexShrink: 0 추가
+  listControlBadge: { 
+    backgroundColor: '#ffebeb', 
+    color: '#ff3b30', 
+    fontSize: '11px', 
+    fontWeight: '700', 
+    padding: '2px 6px', 
+    borderRadius: '4px', 
+    marginLeft: '8px', 
+    marginTop: '2px', // 줄바꿈 대비 약간 내림
+    overflow: 'hidden',
+    flexShrink: 0 
+  },
+  
   listBrand: { fontSize: isSmall ? '13px' : '14px', color: '#8e8e93', fontWeight: '400' },
   chevron: { fontSize: '16px', color: '#c7c7cc', fontWeight: '600' },
   clearHistoryBtn: { backgroundColor: 'transparent', color: '#ff3b30', border: 'none', fontSize: '15px', fontWeight: '600', cursor: 'pointer', padding: '8px 16px' },
@@ -297,18 +346,64 @@ const getStyles = (isSmall) => ({
   
   detailScrollArea: { flex: 1, overflowY: 'auto', paddingBottom: 'calc(40px + env(safe-area-inset-bottom, 0px))' },
   
+  // 가장 위에 뜨는 "제목" 부분도 2줄로 제한
   detailTitleArea: { padding: `4px 20px ${isSmall ? '12px' : '16px'} 20px` },
-  detailMainTitle: { fontSize: isSmall ? '28px' : '34px', fontWeight: '800', color: '#000', margin: 0, letterSpacing: '-0.5px' },
+  detailMainTitle: { 
+    fontSize: isSmall ? '28px' : '34px', 
+    fontWeight: '800', 
+    color: '#000', 
+    margin: 0, 
+    letterSpacing: '-0.5px',
+    display: '-webkit-box', 
+    WebkitLineClamp: 2, 
+    WebkitBoxOrient: 'vertical', 
+    overflow: 'hidden'
+  },
   
   premiumCard: { backgroundColor: '#ffffff', borderRadius: '16px', padding: isSmall ? '12px 16px' : '16px 20px', margin: isSmall ? '0 16px 12px 16px' : '0 16px 16px 16px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' },
   cardRow: { paddingBottom: isSmall ? '10px' : '16px', marginBottom: isSmall ? '10px' : '16px', borderBottom: '1px solid #f2f2f7' },
   label: { fontSize: isSmall ? '11px' : '12px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: isSmall ? '4px' : '6px' },
   valueText: { fontSize: isSmall ? '15px' : '17px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.3' },
   
-  brandNameWrapper: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  brandNameText: { fontSize: isSmall ? '20px' : '24px', color: '#007aff', fontWeight: '700', letterSpacing: '-0.3px' },
-  genericNameText: { fontSize: isSmall ? '18px' : '22px', color: '#34c759', fontWeight: '700', letterSpacing: '-0.3px' },
-  controlBadge: { backgroundColor: '#ffebeb', color: '#ff3b30', fontSize: isSmall ? '13px' : '15px', fontWeight: '700', padding: '4px 10px', borderRadius: '8px', overflow: 'hidden' },
+  brandNameWrapper: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
+  brandNameText: { 
+    fontSize: isSmall ? '20px' : '24px', 
+    color: '#007aff', 
+    fontWeight: '700', 
+    letterSpacing: '-0.3px',
+    display: '-webkit-box', 
+    WebkitLineClamp: 2, 
+    WebkitBoxOrient: 'vertical', 
+    overflow: 'hidden',
+    wordBreak: 'break-word',
+    marginRight: '8px'
+  },
+  
+  // ✨ 상세 화면의 Generic Name도 최대 2줄로 제한
+  genericNameText: { 
+    fontSize: isSmall ? '18px' : '22px', 
+    color: '#34c759', 
+    fontWeight: '700', 
+    letterSpacing: '-0.3px',
+    display: '-webkit-box', 
+    WebkitLineClamp: 2, 
+    WebkitBoxOrient: 'vertical', 
+    overflow: 'hidden', 
+    lineHeight: '1.3', 
+    wordBreak: 'break-word'
+  },
+  
+  controlBadge: { 
+    backgroundColor: '#ffebeb', 
+    color: '#ff3b30', 
+    fontSize: isSmall ? '13px' : '15px', 
+    fontWeight: '700', 
+    padding: '4px 10px', 
+    borderRadius: '8px', 
+    overflow: 'hidden',
+    flexShrink: 0,
+    marginTop: '2px'
+  },
   
   treeWrapper: { display: 'flex', alignItems: 'center', marginTop: '4px' },
   treeLine: { color: '#c7c7cc', fontFamily: 'monospace', fontSize: '18px', marginRight: '8px' },
