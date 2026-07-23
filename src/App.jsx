@@ -6,63 +6,73 @@ const SUPABASE_URL = 'https://znzgptzwbumcbfmnmrfs.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_kx5_uc3eHDnzaAQVRD1d6Q_mdKuvc8w'; 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 🎨 얇고 세련된 느낌으로 통일된 하단 탭 아이콘 (strokeWidth를 1.75로 얇게 조절)
+// 🎨 얇고 세련된 느낌의 하단 탭 아이콘 (strokeWidth: 1.5)
 const SearchIcon = ({ color, size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
     <circle cx="11" cy="11" r="8" />
     <line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 );
 
 const HistoryIcon = ({ color, size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
     <circle cx="12" cy="12" r="10" />
     <polyline points="12 6 12 12 16 14" />
   </svg>
 );
 
-// ✨ 수정됨: 투박함을 없애고 날렵하고 세련되게 다듬은 Control 마크
+// ✨ 수정됨: 투박한 삼각형 대신 "통제/보안"을 의미하는 세련된 열쇠구멍 방패(Shield) 아이콘
 const ControlTabIcon = ({ color, isActive, size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
-    {isActive && <path d="M12 5.5L5 18.5H19L12 5.5Z" fill={color} fillOpacity="0.15" stroke="none" />}
-    <path d="M12 5.5L5 18.5H19L12 5.5Z" />
-    <line x1="12" y1="1" x2="12" y2="2.5" />
-    <line x1="7" y1="2.5" x2="8.5" y2="4" />
-    <line x1="17" y1="2.5" x2="15.5" y2="4" />
-    <line x1="12" y1="10" x2="12" y2="14" />
-    <circle cx="12" cy="16.5" r="1" fill={color} stroke="none" />
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={isActive ? color : "none"} fillOpacity={isActive ? "0.1" : "0"} stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <circle cx="12" cy="11" r="2.5" />
+    <line x1="12" y1="13.5" x2="12" y2="16.5" />
   </svg>
 );
 
-// ✨ 수정됨: 까만 테두리(Circle)를 없애고, 날카롭지 않은 둥근 굵은 폰트(Sans-serif)로 디자인된 공식 마크
-const DEABadge = ({ schedule, size = 26 }) => {
+// ✨ 수정됨: 까만 테두리를 없애고, C는 적당한 굵기로, 숫자는 크고 뚜렷하게(Helvetica 적용)
+const DEABadge = ({ schedule, size = 26, marginLeft = '6px' }) => {
   if (!schedule) return null;
   const s = schedule.toUpperCase();
   let color = '#000000';
   let num = '';
   
-  if (s.includes('C-II') && !s.includes('C-III')) { color = '#ff3b30'; num = 'II'; }
-  else if (s.includes('C-III')) { color = '#e6a800'; num = 'III'; }
-  else if (s.includes('C-IV')) { color = '#e6a800'; num = 'IV'; }
-  else if (s.includes('C-V')) { color = '#000000'; num = 'V'; }
+  if (s.includes('C-II') && !s.includes('C-III')) { color = '#ff3b30'; num = 'II'; } // 빨강
+  else if (s.includes('C-III')) { color = '#d97706'; num = 'III'; } // 흰 바탕에 잘 보이는 짙은 황금빛 노랑
+  else if (s.includes('C-IV')) { color = '#d97706'; num = 'IV'; } // 노랑
+  else if (s.includes('C-V')) { color = '#1c1c1e'; num = 'V'; } // 검정 (진한 회색)
   else return null;
+
+  // III는 너비가 넓으므로 약간의 크기 조정
+  const isThree = num === 'III';
 
   return (
     <div style={{
       width: `${size}px`, height: `${size}px`, 
       display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
-      flexShrink: 0, marginLeft: '6px'
+      flexShrink: 0, marginLeft: marginLeft
     }}>
+      {/* C 마크: 너무 뭉뚱그려지지 않는 둥글고 세련된 폰트 (weight: 500) */}
       <span style={{ 
-        color: color, fontSize: `${size * 1.05}px`, 
-        fontFamily: 'system-ui, -apple-system, sans-serif', 
-        fontWeight: '800', lineHeight: 1, marginRight: `${size * 0.1}px`
+        color: color, 
+        fontSize: `${size * 1.15}px`, 
+        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', 
+        fontWeight: '500', 
+        lineHeight: 1, 
+        marginRight: `${size * 0.1}px`
       }}>C</span>
+      
+      {/* 로마 숫자: 한눈에 들어오도록 굵게(700) 하고 크기 대폭 확대 */}
       <span style={{ 
-        color: color, fontSize: `${size * 0.4}px`, 
-        fontFamily: 'system-ui, -apple-system, sans-serif', 
-        fontWeight: '800', position: 'absolute', left: `${size * 0.42}px`, 
-        top: '50%', transform: 'translateY(-50%)', letterSpacing: '-0.5px'
+        color: color, 
+        fontSize: `${size * (isThree ? 0.38 : 0.45)}px`, 
+        fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif', 
+        fontWeight: '700', 
+        position: 'absolute', 
+        left: `${size * (isThree ? 0.38 : 0.45)}px`, 
+        top: '50%', 
+        transform: 'translateY(-50%)', 
+        letterSpacing: isThree ? '-0.5px' : '0px'
       }}>{num}</span>
     </div>
   );
@@ -237,17 +247,17 @@ export default function App() {
                       onClick={() => setControlFilter(tab)}
                       style={{ ...styles.segmentBtn, ...(controlFilter === tab ? styles.segmentBtnActive : {}) }}
                     >
-                      {/* All 탭만 글씨로, 나머지는 심볼로 표시 */}
-                      {tab === 'All' && <span style={{ fontSize: '14px', fontWeight: '700' }}>All</span>}
-                      {tab === 'C-II' && <DEABadge schedule="C-II" size={20} />}
+                      {/* All 탭만 글씨로, 나머지는 마진을 뺀 심볼로 가운데 정렬 표시 */}
+                      {tab === 'All' && <span style={{ fontSize: '13px', fontWeight: '700' }}>All</span>}
+                      {tab === 'C-II' && <DEABadge schedule="C-II" size={20} marginLeft="0px" />}
                       {tab === 'C-III&IV' && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                          <DEABadge schedule="C-III" size={18} />
-                          <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 'bold' }}>&</span>
-                          <DEABadge schedule="C-IV" size={18} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          <DEABadge schedule="C-III" size={18} marginLeft="0px" />
+                          <span style={{ fontSize: '12px', color: '#8e8e93', fontWeight: '500' }}>&</span>
+                          <DEABadge schedule="C-IV" size={18} marginLeft="0px" />
                         </div>
                       )}
-                      {tab === 'C-V' && <DEABadge schedule="C-V" size={20} />}
+                      {tab === 'C-V' && <DEABadge schedule="C-V" size={20} marginLeft="0px" />}
                     </div>
                   ))}
                 </div>
@@ -422,8 +432,6 @@ const getStyles = (isSmall) => ({
   
   segmentedControlContainer: { padding: '8px 20px 12px 20px', backgroundColor: '#ffffff', borderBottom: '1px solid #e5e5ea' },
   segmentedControl: { display: 'flex', backgroundColor: '#e4e4e9', borderRadius: '8px', padding: '2px' },
-  
-  // ✨ 서브탭 안의 심볼들이 중앙에 오도록 레이아웃 수정
   segmentBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px 0', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s ease', color: '#000' },
   segmentBtnActive: { backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.12)' },
 
@@ -432,7 +440,7 @@ const getStyles = (isSmall) => ({
   listWrapper: { padding: '0 20px' },
   listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isSmall ? '6px 0' : '8px 0', borderBottom: '1px solid #e5e5ea', cursor: 'pointer' },
   listItemContent: { display: 'flex', flexDirection: 'column', flex: 1, paddingRight: '12px' },
-  listTitleRow: { display: 'flex', alignItems: 'flex-start', marginBottom: '0px' }, 
+  listTitleRow: { display: 'flex', alignItems: 'center', marginBottom: '0px' }, // 글씨와 배지의 높이를 수평으로 맞추기 위해 center 적용
   listGeneric: { fontSize: isSmall ? '15px' : '16px', color: '#000', fontWeight: '500', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.2', wordBreak: 'break-word' },
   listBrand: { fontSize: isSmall ? '12px' : '13px', color: '#8e8e93', fontWeight: '400', marginTop: '2px' },
   chevron: { fontSize: '14px', color: '#c7c7cc', fontWeight: '600' },
@@ -460,7 +468,7 @@ const getStyles = (isSmall) => ({
   label: { fontSize: isSmall ? '11px' : '12px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: isSmall ? '4px' : '6px' },
   valueText: { fontSize: isSmall ? '15px' : '17px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.3' },
   
-  brandNameWrapper: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
+  brandNameWrapper: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   brandNameText: { fontSize: isSmall ? '20px' : '24px', color: '#007aff', fontWeight: '700', letterSpacing: '-0.3px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'break-word', marginRight: '8px' },
   genericNameText: { fontSize: isSmall ? '18px' : '22px', color: '#34c759', fontWeight: '700', letterSpacing: '-0.3px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.3', wordBreak: 'break-word' },
   
