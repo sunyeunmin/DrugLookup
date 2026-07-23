@@ -7,109 +7,109 @@ const SUPABASE_ANON_KEY = 'sb_publishable_kx5_uc3eHDnzaAQVRD1d6Q_mdKuvc8w';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function App() {
-  // 화면 및 탭 상태 관리
-  const [currentScreen, setCurrentScreen] = useState('main'); // 'main' 또는 'detail'
-  const [activeTab, setActiveTab] = useState('search'); // 'search' 또는 'history'
-  
+  // ✨ 기기별 화면 높이를 실시간으로 저장하는 상태
+  const [appHeight, setAppHeight] = useState(window.innerHeight);
+
+  const [currentScreen, setCurrentScreen] = useState('main'); 
+  const [activeTab, setActiveTab] = useState('search'); 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedDrug, setSelectedDrug] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // 검색 기록 상태 관리 (앱을 껐다 켜도 유지되도록 localStorage 사용)
   const [history, setHistory] = useState(() => {
     const saved = localStorage.getItem('drugHistory');
     return saved ? JSON.parse(saved) : [];
   });
 
-  // 약품 선택 시 상세 화면으로 이동 및 History 저장 로직
+  // ✨ 기기 사이즈가 바뀔 때마다 높이를 재계산하는 마법의 코드
+  useEffect(() => {
+    const handleResize = () => {
+      setAppHeight(window.innerHeight);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    handleResize(); // 처음 켜질 때 한 번 계산
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleDrugSelect = (drug) => {
     setSelectedDrug(drug);
     setCurrentScreen('detail');
-
     setHistory((prevHistory) => {
-      // 중복 방지를 위해 기존 기록에서 제거 후 맨 앞에 추가
       const filtered = prevHistory.filter(item => item.id !== drug.id);
-      const newHistory = [drug, ...filtered].slice(0, 50); // 최근 50개까지만 저장
+      const newHistory = [drug, ...filtered].slice(0, 50); 
       localStorage.setItem('drugHistory', JSON.stringify(newHistory));
       return newHistory;
     });
   };
 
-  // 실시간 검색 쿼리 로직
   useEffect(() => {
     const fetchDrugs = async () => {
       const trimmedQuery = searchQuery.trim();
-      
       if (trimmedQuery.length < 2) {
         setSearchResults([]);
         setErrorMessage('');
         return;
       }
-
       setIsLoading(true);
       setErrorMessage('');
-      
       try {
         const { data, error } = await supabase
           .from('drugs')
           .select('*')
           .or(`brand_name.ilike.${trimmedQuery}%,generic_name.ilike.${trimmedQuery}%`)
           .order('generic_name', { ascending: true });
-
         if (error) throw error;
         setSearchResults(data || []);
       } catch (err) {
-        console.error('Database fetch error:', err.message);
         setErrorMessage('데이터베이스 연결 실패. RLS 설정 또는 키를 확인하세요.');
         setSearchResults([]);
       } finally {
         setIsLoading(false);
       }
     };
-
-    const delayDebounceTimer = setTimeout(() => {
-      fetchDrugs();
-    }, 150);
-
+    const delayDebounceTimer = setTimeout(() => fetchDrugs(), 150);
     return () => clearTimeout(delayDebounceTimer);
   }, [searchQuery]);
 
   return (
-    <div style={styles.mobileContainer}>
+    // ✨ 계산된 appHeight를 화면 전체 높이에 강제 적용
+    <div style={{ ...styles.dynamicContainer, height: `${appHeight}px` }}>
       
-      {/* -------------------- 1. 메인 화면 (Search & History 탭) -------------------- */}
+      {/* -------------------- 1. 메인 화면 -------------------- */}
       {currentScreen === 'main' && (
         <div style={styles.flexLayout}>
           
-          <div style={styles.headerArea}>
-            <h1 style={styles.mainTitle}>{activeTab === 'search' ? 'Drug Lookup' : 'Recent History'}</h1>
+          {/* 상단 헤더 & 검색창 (크기 고정) */}
+          <div style={styles.topFixedArea}>
+            <div style={styles.headerArea}>
+              <h1 style={styles.mainTitle}>{activeTab === 'search' ? 'Drug Lookup' : 'Recent History'}</h1>
+            </div>
+
+            {activeTab === 'search' && (
+              <div style={styles.searchContainer}>
+                <div style={styles.searchBarWrapper}>
+                  <span style={styles.searchIcon}>🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Enter drug name (e.g., 'val')..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={styles.searchInput}
+                  />
+                  {searchQuery && (
+                    <button onClick={() => { setSearchQuery(''); setSearchResults([]); }} style={styles.clearButton}>✕</button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Search 탭일 때만 검색창 표시 */}
-          {activeTab === 'search' && (
-            <div style={styles.searchContainer}>
-              <div style={styles.searchBarWrapper}>
-                <span style={styles.searchIcon}>🔍</span>
-                <input
-                  type="text"
-                  placeholder="Enter drug name (e.g., 'val')..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={styles.searchInput}
-                />
-                {searchQuery && (
-                  <button onClick={() => { setSearchQuery(''); setSearchResults([]); }} style={styles.clearButton}>✕</button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* 스크롤 영역 (Search 결과 또는 History 목록) */}
+          {/* 중간 내용 영역 (남은 공간을 모두 차지하며 여기서만 스크롤) */}
           <div style={styles.scrollArea}>
-            
-            {/* Search 탭 컨텐츠 */}
             {activeTab === 'search' && (
               <>
                 {errorMessage && <div style={styles.errorText}>{errorMessage}</div>}
@@ -145,7 +145,6 @@ export default function App() {
               </>
             )}
 
-            {/* History 탭 컨텐츠 */}
             {activeTab === 'history' && (
               history.length === 0 ? (
                 <div style={styles.emptyContainer}>
@@ -176,7 +175,7 @@ export default function App() {
             )}
           </div>
 
-          {/* 하단 탭 바 */}
+          {/* 하단 탭 바 (화면 맨 밑에 크기 고정) */}
           <div style={styles.tabBar}>
             <div onClick={() => setActiveTab('search')} style={{ ...styles.tabItem, color: activeTab === 'search' ? '#007aff' : '#8e8e93' }}>
               <span style={styles.tabIcon}>🔍</span>
@@ -190,7 +189,7 @@ export default function App() {
         </div>
       )}
 
-      {/* -------------------- 2. 약품 상세 정보 화면 (프리미엄 UI) -------------------- */}
+      {/* -------------------- 2. 약품 상세 화면 -------------------- */}
       {currentScreen === 'detail' && selectedDrug && (
         <div style={styles.flexLayout}>
           
@@ -201,11 +200,8 @@ export default function App() {
           </div>
 
           <div style={styles.detailScrollArea}>
-            
             <div style={styles.detailTitleArea}>
-              <h2 style={styles.detailMainTitle}>
-                "{selectedDrug.brand_name || selectedDrug.generic_name}"
-              </h2>
+              <h2 style={styles.detailMainTitle}>"{selectedDrug.brand_name || selectedDrug.generic_name}"</h2>
             </div>
             
             <div style={styles.premiumCard}>
@@ -213,11 +209,7 @@ export default function App() {
                 <div style={styles.label}>Brand Name</div>
                 <div style={styles.brandNameWrapper}>
                   <div style={styles.brandNameText}>{selectedDrug.brand_name || 'N/A'}</div>
-                  {selectedDrug.control_drug && (
-                    <div style={styles.controlBadge}>
-                      {selectedDrug.control_drug}
-                    </div>
-                  )}
+                  {selectedDrug.control_drug && <div style={styles.controlBadge}>{selectedDrug.control_drug}</div>}
                 </div>
               </div>
               <div style={{ ...styles.cardRow, borderBottom: 'none', paddingBottom: 0 }}>
@@ -255,11 +247,8 @@ export default function App() {
                 <span style={styles.importantIcon}>★</span>
                 <span style={styles.importantTitle}>IMPORTANT INFO</span>
               </div>
-              <div style={styles.importantText}>
-                {selectedDrug.remarks || 'No specific remarks recorded.'}
-              </div>
+              <div style={styles.importantText}>{selectedDrug.remarks || 'No specific remarks recorded.'}</div>
             </div>
-
           </div>
         </div>
       )}
@@ -269,19 +258,22 @@ export default function App() {
 
 // 🎨 스타일링
 const styles = {
-  mobileContainer: { width: '100vw', height: '100vh', backgroundColor: '#F2F2F7', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', overflow: 'hidden', position: 'relative', boxSizing: 'border-box' },
+  // 전체를 감싸는 컨테이너 (스크롤 방지 및 기기 맞춤)
+  dynamicContainer: { width: '100vw', backgroundColor: '#F2F2F7', overflow: 'hidden', position: 'relative', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
   flexLayout: { display: 'flex', flexDirection: 'column', width: '100%', height: '100%' },
   
-  // 검색창 배경 일체감 수정 (어색한 회색 띠 제거)
-  headerArea: { padding: '24px 20px 12px 20px', backgroundColor: '#ffffff' },
+  // 상단 영역 (flexShrink: 0 으로 크기 축소 방지)
+  topFixedArea: { flexShrink: 0, backgroundColor: '#ffffff' },
+  headerArea: { padding: 'max(24px, env(safe-area-inset-top)) 20px 12px 20px' },
   mainTitle: { fontSize: '34px', fontWeight: '800', color: '#000000', margin: 0, letterSpacing: '-0.5px' },
-  searchContainer: { backgroundColor: '#ffffff', padding: '4px 20px 16px 20px', borderBottom: '1px solid #e5e5ea' },
+  searchContainer: { padding: '4px 20px 16px 20px', borderBottom: '1px solid #e5e5ea' },
   searchBarWrapper: { position: 'relative', backgroundColor: '#7676801F', borderRadius: '10px', padding: '8px 12px', display: 'flex', alignItems: 'center' },
   searchIcon: { fontSize: '16px', marginRight: '6px', color: '#8e8e93' },
   searchInput: { flex: 1, border: 'none', backgroundColor: 'transparent', fontSize: '17px', outline: 'none', color: '#000' },
   clearButton: { border: 'none', backgroundColor: '#c7c7cc', color: '#ffffff', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   
-  scrollArea: { flex: 1, overflowY: 'auto', paddingBottom: '70px', backgroundColor: '#ffffff' },
+  // 중간 스크롤 영역 (flex: 1 로 남은 공간 모두 차지, 이 안에서만 스크롤)
+  scrollArea: { flex: 1, overflowY: 'auto', backgroundColor: '#ffffff' },
   
   listWrapper: { padding: '0 20px' },
   listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0', borderBottom: '1px solid #e5e5ea', cursor: 'pointer' },
@@ -291,11 +283,10 @@ const styles = {
   listControlBadge: { backgroundColor: '#ffebeb', color: '#ff3b30', fontSize: '11px', fontWeight: '700', padding: '2px 6px', borderRadius: '4px', marginLeft: '8px', overflow: 'hidden' },
   listBrand: { fontSize: '14px', color: '#8e8e93', fontWeight: '400' },
   chevron: { fontSize: '16px', color: '#c7c7cc', fontWeight: '600' },
-  
-  // History 삭제 버튼
   clearHistoryBtn: { backgroundColor: 'transparent', color: '#ff3b30', border: 'none', fontSize: '15px', fontWeight: '600', cursor: 'pointer', padding: '8px 16px' },
 
-  tabBar: { position: 'absolute', bottom: 0, left: 0, width: '100%', height: '64px', borderTop: '1px solid #e5e5ea', backgroundColor: '#f8f8f8', display: 'flex', paddingBottom: '8px' },
+  // 하단 탭 바 (flexShrink: 0 으로 크기 고정, 환경변수로 안전영역 확보)
+  tabBar: { flexShrink: 0, height: 'calc(54px + env(safe-area-inset-bottom, 0px))', paddingBottom: 'env(safe-area-inset-bottom, 0px)', borderTop: '1px solid #e5e5ea', backgroundColor: '#f8f8f8', display: 'flex' },
   tabItem: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
   tabIcon: { fontSize: '20px', marginBottom: '2px' },
   tabLabel: { fontSize: '10px', fontWeight: '600' },
@@ -306,9 +297,11 @@ const styles = {
   loadingText: { textAlign: 'center', padding: '30px', color: '#8e8e93' },
   errorText: { padding: '14px', margin: '10px 20px', backgroundColor: '#ffebeb', color: '#ff3b30', borderRadius: '12px', fontSize: '14px', fontWeight: '500', textAlign: 'center' },
 
-  detailNavBar: { display: 'flex', alignItems: 'center', height: '56px', padding: '0 10px', backgroundColor: '#F2F2F7' },
+  detailNavBar: { flexShrink: 0, display: 'flex', alignItems: 'center', height: 'calc(44px + env(safe-area-inset-top, 0px))', paddingTop: 'env(safe-area-inset-top, 0px)', paddingRight: '10px', paddingLeft: '10px', backgroundColor: '#F2F2F7' },
   navBackButton: { border: 'none', backgroundColor: 'transparent', color: '#007aff', fontSize: '17px', fontWeight: '400', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px' },
-  detailScrollArea: { flex: 1, overflowY: 'auto', paddingBottom: '40px' },
+  
+  detailScrollArea: { flex: 1, overflowY: 'auto', paddingBottom: 'calc(40px + env(safe-area-inset-bottom, 0px))' },
+  
   detailTitleArea: { padding: '4px 20px 16px 20px' },
   detailMainTitle: { fontSize: '34px', fontWeight: '800', color: '#000', margin: 0, letterSpacing: '-0.5px' },
   premiumCard: { backgroundColor: '#ffffff', borderRadius: '16px', padding: '16px 20px', margin: '0 16px 16px 16px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' },
