@@ -8,8 +8,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function App() {
   const [appHeight, setAppHeight] = useState(window.innerHeight);
-  
-  // ✨ 핵심 추가: 화면 높이가 715px보다 작으면(아이폰 SE 등) 촘촘한 모드로 전환!
   const isSmallScreen = appHeight < 715; 
 
   const [currentScreen, setCurrentScreen] = useState('main'); 
@@ -74,7 +72,6 @@ export default function App() {
     return () => clearTimeout(delayDebounceTimer);
   }, [searchQuery]);
 
-  // ✨ 화면 크기에 따라 변경된 스타일 객체를 가져옵니다.
   const styles = getStyles(isSmallScreen);
 
   return (
@@ -240,13 +237,17 @@ export default function App() {
               </div>
             </div>
 
-            <div style={styles.importantCard}>
-              <div style={styles.importantHeader}>
-                <span style={styles.importantIcon}>★</span>
-                <span style={styles.importantTitle}>IMPORTANT INFO</span>
+            {/* ✨ remarks 값이 있을 때만 Important Info 카드를 화면에 렌더링하도록 조건부 처리! */}
+            {selectedDrug.remarks && selectedDrug.remarks.trim() !== '' && (
+              <div style={styles.importantCard}>
+                <div style={styles.importantHeader}>
+                  <span style={styles.importantIcon}>★</span>
+                  <span style={styles.importantTitle}>IMPORTANT INFO</span>
+                </div>
+                <div style={styles.importantText}>{selectedDrug.remarks}</div>
               </div>
-              <div style={styles.importantText}>{selectedDrug.remarks || 'No specific remarks recorded.'}</div>
-            </div>
+            )}
+
           </div>
         </div>
       )}
@@ -254,14 +255,12 @@ export default function App() {
   );
 }
 
-// 🎨 작은 화면(SE 등)일 때 여백과 글자 크기를 확 줄이도록 동적으로 디자인하는 함수!
+// 🎨 스타일링
 const getStyles = (isSmall) => ({
   dynamicContainer: { width: '100vw', backgroundColor: '#F2F2F7', overflow: 'hidden', position: 'relative', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
   flexLayout: { display: 'flex', flexDirection: 'column', width: '100%', height: '100%' },
   
   topFixedArea: { flexShrink: 0, backgroundColor: '#ffffff' },
-  
-  // SE 환경에서는 타이틀 크기와 패딩을 대폭 축소
   headerArea: { padding: `max(${isSmall ? '16px' : '24px'}, env(safe-area-inset-top)) 20px ${isSmall ? '8px' : '12px'} 20px` },
   mainTitle: { fontSize: isSmall ? '28px' : '34px', fontWeight: '800', color: '#000000', margin: 0, letterSpacing: '-0.5px' },
   searchContainer: { padding: `4px 20px ${isSmall ? '12px' : '16px'} 20px`, borderBottom: '1px solid #e5e5ea' },
@@ -272,7 +271,6 @@ const getStyles = (isSmall) => ({
   
   scrollArea: { flex: 1, overflowY: 'auto', backgroundColor: '#ffffff' },
   
-  // 검색 결과 리스트 아이템 높이 축소
   listWrapper: { padding: '0 20px' },
   listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isSmall ? '12px 0' : '16px 0', borderBottom: '1px solid #e5e5ea', cursor: 'pointer' },
   listItemContent: { display: 'flex', flexDirection: 'column' },
@@ -302,7 +300,6 @@ const getStyles = (isSmall) => ({
   detailTitleArea: { padding: `4px 20px ${isSmall ? '12px' : '16px'} 20px` },
   detailMainTitle: { fontSize: isSmall ? '28px' : '34px', fontWeight: '800', color: '#000', margin: 0, letterSpacing: '-0.5px' },
   
-  // ✨ SE 환경에서는 하얀색 카드의 여백과 줄간격을 컴팩트하게 조정
   premiumCard: { backgroundColor: '#ffffff', borderRadius: '16px', padding: isSmall ? '12px 16px' : '16px 20px', margin: isSmall ? '0 16px 12px 16px' : '0 16px 16px 16px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' },
   cardRow: { paddingBottom: isSmall ? '10px' : '16px', marginBottom: isSmall ? '10px' : '16px', borderBottom: '1px solid #f2f2f7' },
   label: { fontSize: isSmall ? '11px' : '12px', color: '#8e8e93', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: isSmall ? '4px' : '6px' },
