@@ -6,39 +6,35 @@ const SUPABASE_URL = 'https://znzgptzwbumcbfmnmrfs.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_kx5_uc3eHDnzaAQVRD1d6Q_mdKuvc8w'; 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 🎨 고급스러운 SVG 아이콘 컴포넌트 모음 (이모지 대체)
+// 🎨 얇고 세련된 느낌으로 통일된 하단 탭 아이콘 (strokeWidth를 1.75로 얇게 조절)
 const SearchIcon = ({ color, size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
     <circle cx="11" cy="11" r="8" />
     <line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 );
 
 const HistoryIcon = ({ color, size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
     <circle cx="12" cy="12" r="10" />
     <polyline points="12 6 12 12 16 14" />
   </svg>
 );
 
-// ✨ 요청하신 '세련된 삼각형 경고 마크' (선택 시 안쪽이 은은하게 채워짐)
+// ✨ 수정됨: 투박함을 없애고 날렵하고 세련되게 다듬은 Control 마크
 const ControlTabIcon = ({ color, isActive, size = 24 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
-    {/* 선택 시 안쪽에 부드러운 파스텔톤 채우기 효과 */}
-    {isActive && <path d="M12 6L4.5 19.5H19.5L12 6Z" fill={color} fillOpacity="0.2" stroke="none" />}
-    {/* 메인 삼각형 테두리 */}
-    <path d="M12 6L4.5 19.5H19.5L12 6Z" />
-    {/* 상단 3줄기 빛 (Rays) */}
-    <line x1="12" y1="1" x2="12" y2="3" />
-    <line x1="6.5" y1="3.5" x2="8.5" y2="5.5" />
-    <line x1="17.5" y1="3.5" x2="15.5" y2="5.5" />
-    {/* 내부 느낌표 */}
-    <line x1="12" y1="10" x2="12" y2="14.5" />
-    <circle cx="12" cy="17.5" r="1.5" fill={color} stroke="none" />
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px' }}>
+    {isActive && <path d="M12 5.5L5 18.5H19L12 5.5Z" fill={color} fillOpacity="0.15" stroke="none" />}
+    <path d="M12 5.5L5 18.5H19L12 5.5Z" />
+    <line x1="12" y1="1" x2="12" y2="2.5" />
+    <line x1="7" y1="2.5" x2="8.5" y2="4" />
+    <line x1="17" y1="2.5" x2="15.5" y2="4" />
+    <line x1="12" y1="10" x2="12" y2="14" />
+    <circle cx="12" cy="16.5" r="1" fill={color} stroke="none" />
   </svg>
 );
 
-// 공식 DEA Schedule 마크 컴포넌트
+// ✨ 수정됨: 까만 테두리(Circle)를 없애고, 날카롭지 않은 둥근 굵은 폰트(Sans-serif)로 디자인된 공식 마크
 const DEABadge = ({ schedule, size = 26 }) => {
   if (!schedule) return null;
   const s = schedule.toUpperCase();
@@ -53,12 +49,21 @@ const DEABadge = ({ schedule, size = 26 }) => {
 
   return (
     <div style={{
-      width: `${size}px`, height: `${size}px`, borderRadius: '50%', border: '1px solid #191f28',
+      width: `${size}px`, height: `${size}px`, 
       display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
-      flexShrink: 0, marginLeft: '6px', backgroundColor: '#ffffff', overflow: 'hidden'
+      flexShrink: 0, marginLeft: '6px'
     }}>
-      <span style={{ color: color, fontSize: `${size * 0.9}px`, fontFamily: '"Times New Roman", Times, serif', lineHeight: 1, marginRight: `${size * 0.15}px`, marginTop: '-1px' }}>C</span>
-      <span style={{ color: color, fontSize: `${size * 0.35}px`, fontFamily: '"Times New Roman", Times, serif', fontWeight: 'bold', position: 'absolute', left: `${size * 0.44}px`, top: '50%', transform: 'translateY(-50%)', letterSpacing: '-0.5px' }}>{num}</span>
+      <span style={{ 
+        color: color, fontSize: `${size * 1.05}px`, 
+        fontFamily: 'system-ui, -apple-system, sans-serif', 
+        fontWeight: '800', lineHeight: 1, marginRight: `${size * 0.1}px`
+      }}>C</span>
+      <span style={{ 
+        color: color, fontSize: `${size * 0.4}px`, 
+        fontFamily: 'system-ui, -apple-system, sans-serif', 
+        fontWeight: '800', position: 'absolute', left: `${size * 0.42}px`, 
+        top: '50%', transform: 'translateY(-50%)', letterSpacing: '-0.5px'
+      }}>{num}</span>
     </div>
   );
 };
@@ -69,7 +74,7 @@ export default function App() {
 
   const [currentScreen, setCurrentScreen] = useState('main'); 
   const [activeTab, setActiveTab] = useState('search'); 
-  const [controlFilter, setControlFilter] = useState('전체');
+  const [controlFilter, setControlFilter] = useState('All');
   
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -182,10 +187,10 @@ export default function App() {
   );
 
   const filteredControlledDrugs = controlledDrugs.filter((drug) => {
-    if (controlFilter === '전체') return true;
+    if (controlFilter === 'All') return true;
     const str = (drug.control_drug || '').toUpperCase();
     if (controlFilter === 'C-II') return str.includes('C-II') && !str.includes('C-III');
-    if (controlFilter === 'C-III & C-IV') return str.includes('C-III') || str.includes('C-IV');
+    if (controlFilter === 'C-III&IV') return str.includes('C-III') || str.includes('C-IV');
     if (controlFilter === 'C-V') return str.includes('C-V') && !str.includes('C-IV');
     return true;
   });
@@ -222,16 +227,27 @@ export default function App() {
               </div>
             )}
 
+            {/* ✨ 수정됨: 텍스트 대신 실제 심볼 로고로 그려지는 서브 탭! */}
             {activeTab === 'control' && (
               <div style={styles.segmentedControlContainer}>
                 <div style={styles.segmentedControl}>
-                  {['전체', 'C-II', 'C-III & C-IV', 'C-V'].map((tab) => (
+                  {['All', 'C-II', 'C-III&IV', 'C-V'].map((tab) => (
                     <div 
                       key={tab} 
                       onClick={() => setControlFilter(tab)}
                       style={{ ...styles.segmentBtn, ...(controlFilter === tab ? styles.segmentBtnActive : {}) }}
                     >
-                      {tab}
+                      {/* All 탭만 글씨로, 나머지는 심볼로 표시 */}
+                      {tab === 'All' && <span style={{ fontSize: '14px', fontWeight: '700' }}>All</span>}
+                      {tab === 'C-II' && <DEABadge schedule="C-II" size={20} />}
+                      {tab === 'C-III&IV' && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                          <DEABadge schedule="C-III" size={18} />
+                          <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: 'bold' }}>&</span>
+                          <DEABadge schedule="C-IV" size={18} />
+                        </div>
+                      )}
+                      {tab === 'C-V' && <DEABadge schedule="C-V" size={20} />}
                     </div>
                   ))}
                 </div>
@@ -304,8 +320,7 @@ export default function App() {
               <HistoryIcon color={activeTab === 'history' ? '#007aff' : '#8e8e93'} size={24} />
               <span style={styles.tabLabel}>History</span>
             </div>
-            <div onClick={() => { setActiveTab('control'); setControlFilter('전체'); }} style={{ ...styles.tabItem, color: activeTab === 'control' ? '#ff3b30' : '#8e8e93' }}>
-              {/* ✨ 탭을 클릭하면 isActive 속성이 true로 전달되어 예쁘게 채워집니다 */}
+            <div onClick={() => { setActiveTab('control'); setControlFilter('All'); }} style={{ ...styles.tabItem, color: activeTab === 'control' ? '#ff3b30' : '#8e8e93' }}>
               <ControlTabIcon color={activeTab === 'control' ? '#ff3b30' : '#8e8e93'} isActive={activeTab === 'control'} size={24} />
               <span style={styles.tabLabel}>Control</span>
             </div>
@@ -335,7 +350,7 @@ export default function App() {
                 <div style={styles.label}>Brand Name</div>
                 <div style={styles.brandNameWrapper}>
                   <div style={styles.brandNameText}>{selectedDrug.brand_name || 'N/A'}</div>
-                  <DEABadge schedule={selectedDrug.control_drug} size={32} />
+                  <DEABadge schedule={selectedDrug.control_drug} size={36} />
                 </div>
               </div>
               <div style={{ ...styles.cardRow, borderBottom: 'none', paddingBottom: 0 }}>
@@ -407,7 +422,9 @@ const getStyles = (isSmall) => ({
   
   segmentedControlContainer: { padding: '8px 20px 12px 20px', backgroundColor: '#ffffff', borderBottom: '1px solid #e5e5ea' },
   segmentedControl: { display: 'flex', backgroundColor: '#e4e4e9', borderRadius: '8px', padding: '2px' },
-  segmentBtn: { flex: 1, textAlign: 'center', padding: '6px 0', fontSize: '12px', fontWeight: '700', color: '#000', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s ease' },
+  
+  // ✨ 서브탭 안의 심볼들이 중앙에 오도록 레이아웃 수정
+  segmentBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px 0', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s ease', color: '#000' },
   segmentBtnActive: { backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.12)' },
 
   scrollArea: { flex: 1, overflowY: 'auto', backgroundColor: '#ffffff' },
