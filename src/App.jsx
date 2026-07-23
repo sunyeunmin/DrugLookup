@@ -11,7 +11,10 @@ export default function App() {
   const isSmallScreen = appHeight < 715; 
 
   const [currentScreen, setCurrentScreen] = useState('main'); 
-  const [activeTab, setActiveTab] = useState('search'); // 'search', 'history', 'control'
+  const [activeTab, setActiveTab] = useState('search'); 
+  
+  // ✨ 신규: Control 탭 내부의 필터링 상태 (All, C-II, C-III&IV, C-V)
+  const [controlFilter, setControlFilter] = useState('All');
   
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -19,17 +22,14 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // 히스토리 상태 관리
   const [history, setHistory] = useState(() => {
     const saved = localStorage.getItem('drugHistory');
     return saved ? JSON.parse(saved) : [];
   });
 
-  // ✨ 신규: Control 탭용 상태 관리
   const [controlledDrugs, setControlledDrugs] = useState([]);
   const [isControlLoading, setIsControlLoading] = useState(false);
 
-  // 화면 높이 재계산
   useEffect(() => {
     const handleResize = () => setAppHeight(window.innerHeight);
     window.addEventListener('resize', handleResize);
@@ -37,7 +37,6 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // 약품 클릭 시 상세화면 이동 및 History 저장
   const handleDrugSelect = (drug) => {
     setSelectedDrug(drug);
     setCurrentScreen('detail');
@@ -49,7 +48,6 @@ export default function App() {
     });
   };
 
-  // 🔍 검색 로직
   useEffect(() => {
     const fetchDrugs = async () => {
       const trimmedQuery = searchQuery.trim();
@@ -79,7 +77,6 @@ export default function App() {
     return () => clearTimeout(delayDebounceTimer);
   }, [searchQuery]);
 
-  // ✨ 신규: Control 탭 클릭 시 규제 약물만 불러오는 로직
   useEffect(() => {
     if (activeTab === 'control' && controlledDrugs.length === 0) {
       const fetchControlled = async () => {
@@ -88,11 +85,10 @@ export default function App() {
           const { data, error } = await supabase
             .from('drugs')
             .select('*')
-            .not('control_drug', 'is', null) // DB에서 null이 아닌 것만 가져오기
+            .not('control_drug', 'is', null)
             .order('generic_name', { ascending: true });
           if (error) throw error;
           
-          // 가져온 데이터 중 빈 문자열('')인 데이터 한 번 더 걸러내기
           const validControlled = (data || []).filter(d => d.control_drug && d.control_drug.trim() !== '');
           setControlledDrugs(validControlled);
         } catch (err) {
@@ -107,7 +103,22 @@ export default function App() {
 
   const styles = getStyles(isSmallScreen);
 
-  // ✨ 반복되는 리스트 아이템 디자인을 하나의 함수로 깔끔하게 정리 (검색, 히스토리, 컨트롤 탭 모두 사용)
+  // ✨ 신규: 등급에 따라 배지 색상을 자동으로 반환하는 함수
+  const getBadgeColors = (controlStr) => {
+    if (!controlStr) return {};
+    const str = controlStr.toUpperCase();
+    if (str.includes('C-III') || str.includes('C-IV')) {
+      return { backgroundColor: '#fff0e6', color: '#ff9500', border: '1px solid #ffd6b3' }; // 주황색
+    }
+    if (str.includes('C-II')) {
+      return { backgroundColor: '#ffebeb', color: '#ff3b30', border: '1px solid #ffc6c6' }; // 붉은색
+    }
+    if (str.includes('C-V')) {
+      return { backgroundColor: '#fffbe6', color: '#d48806', border: '1px solid #ffe680' }; // 노란색 (가독성을 위해 약간 진한 노랑)
+    }
+    return { backgroundColor: '#f2f2f7', color: '#8e8e93', border: '1px solid #e5e5ea' }; // 기본값
+  };
+
   const renderDrugList = (drugsList) => (
     <div style={styles.listWrapper}>
       {drugsList.map((drug, index) => (
@@ -121,7 +132,12 @@ export default function App() {
                }}>
                 {drug.generic_name}
               </span>
-              {drug.control_drug && <span style={styles.listControlBadge}>{drug.control_drug}</span>}
+              {/* ✨ 배지에 동적 색상 적용 */}
+              {drug.control_drug && (
+                <span style={{ ...styles.listControlBadge, ...getBadgeColors(drug.control_drug) }}>
+                  {drug.control_drug}
+                </span>
+              )}
             </div>
             {drug.brand_name && <span style={styles.listBrand}>{drug.brand_name}</span>}
           </div>
@@ -130,6 +146,16 @@ export default function App() {
       ))}
     </div>
   );
+
+  // ✨ 신규: 선택된 서브 탭에 맞춰서 약품 목록 필터링
+  const filteredControlledDrugs = controlledDrugs.filter((drug) => {
+    if (controlFilter === 'All') return true;
+    const str = (drug.control_drug || '').toUpperCase();
+    if (controlFilter === 'C-II') return str.includes('C-II') && !str.includes('C-III');
+    if (controlFilter === 'C-III&IV') return str.includes('C-III') || str.includes('C-IV');
+    if (controlFilter === 'C-V') return str.includes('C-V') && !str.includes('C-IV');
+    return true;
+  });
 
   return (
     <div style={{ ...styles.dynamicContainer, height: `${appHeight}px` }}>
@@ -141,7 +167,6 @@ export default function App() {
           <div style={styles.topFixedArea}>
             <div style={styles.headerArea}>
               <h1 style={styles.mainTitle}>
-                {/* 탭에 따라 타이틀 자동 변경 */}
                 {activeTab === 'search' ? 'Drug Lookup' : activeTab === 'history' ? 'Recent History' : 'Controlled Drugs'}
               </h1>
             </div>
@@ -163,11 +188,27 @@ export default function App() {
                 </div>
               </div>
             )}
+
+            {/* ✨ 신규: Control 탭일 때 상단에 표시되는 서브 탭 (iOS Segmented Control 스타일) */}
+            {activeTab === 'control' && (
+              <div style={styles.segmentedControlContainer}>
+                <div style={styles.segmentedControl}>
+                  {['All', 'C-II', 'C-III&IV', 'C-V'].map((tab) => (
+                    <div 
+                      key={tab} 
+                      onClick={() => setControlFilter(tab)}
+                      style={{ ...styles.segmentBtn, ...(controlFilter === tab ? styles.segmentBtnActive : {}) }}
+                    >
+                      {tab === 'All' ? '전체' : tab}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div style={styles.scrollArea}>
             
-            {/* 1-1. Search 탭 화면 */}
             {activeTab === 'search' && (
               <>
                 {errorMessage && <div style={styles.errorText}>{errorMessage}</div>}
@@ -190,7 +231,6 @@ export default function App() {
               </>
             )}
 
-            {/* 1-2. History 탭 화면 */}
             {activeTab === 'history' && (
               history.length === 0 ? (
                 <div style={styles.emptyContainer}>
@@ -209,22 +249,20 @@ export default function App() {
               )
             )}
 
-            {/* 1-3. ✨ 신규: Control 탭 화면 */}
             {activeTab === 'control' && (
               isControlLoading ? (
                 <div style={styles.loadingText}>Loading controlled drugs...</div>
-              ) : controlledDrugs.length === 0 ? (
+              ) : filteredControlledDrugs.length === 0 ? (
                 <div style={styles.emptyContainer}>
                   <div style={styles.emptyIcon}>🛡️</div>
-                  <p style={styles.emptyText}>No controlled drugs found.</p>
+                  <p style={styles.emptyText}>No drugs match this filter.</p>
                 </div>
               ) : (
-                renderDrugList(controlledDrugs)
+                renderDrugList(filteredControlledDrugs)
               )
             )}
           </div>
 
-          {/* ✨ 신규: 3개의 버튼으로 나뉜 하단 탭 바 */}
           <div style={styles.tabBar}>
             <div onClick={() => setActiveTab('search')} style={{ ...styles.tabItem, color: activeTab === 'search' ? '#007aff' : '#8e8e93' }}>
               <span style={styles.tabIcon}>🔍</span>
@@ -234,7 +272,7 @@ export default function App() {
               <span style={styles.tabIcon}>🕒</span>
               <span style={styles.tabLabel}>History</span>
             </div>
-            <div onClick={() => setActiveTab('control')} style={{ ...styles.tabItem, color: activeTab === 'control' ? '#ff3b30' : '#8e8e93' }}>
+            <div onClick={() => { setActiveTab('control'); setControlFilter('All'); }} style={{ ...styles.tabItem, color: activeTab === 'control' ? '#ff3b30' : '#8e8e93' }}>
               <span style={styles.tabIcon}>🛡️</span>
               <span style={styles.tabLabel}>Control</span>
             </div>
@@ -264,7 +302,12 @@ export default function App() {
                 <div style={styles.label}>Brand Name</div>
                 <div style={styles.brandNameWrapper}>
                   <div style={styles.brandNameText}>{selectedDrug.brand_name || 'N/A'}</div>
-                  {selectedDrug.control_drug && <div style={styles.controlBadge}>{selectedDrug.control_drug}</div>}
+                  {/* ✨ 상세화면 배지에도 동적 색상 적용 */}
+                  {selectedDrug.control_drug && (
+                    <div style={{ ...styles.controlBadge, ...getBadgeColors(selectedDrug.control_drug) }}>
+                      {selectedDrug.control_drug}
+                    </div>
+                  )}
                 </div>
               </div>
               <div style={{ ...styles.cardRow, borderBottom: 'none', paddingBottom: 0 }}>
@@ -326,24 +369,32 @@ const getStyles = (isSmall) => ({
   flexLayout: { display: 'flex', flexDirection: 'column', width: '100%', height: '100%' },
   
   topFixedArea: { flexShrink: 0, backgroundColor: '#ffffff' },
-  headerArea: { padding: `max(${isSmall ? '16px' : '24px'}, env(safe-area-inset-top)) 20px ${isSmall ? '8px' : '12px'} 20px` },
-  mainTitle: { fontSize: isSmall ? '28px' : '34px', fontWeight: '800', color: '#000000', margin: 0, letterSpacing: '-0.5px' },
+  headerArea: { padding: `max(${isSmall ? '16px' : '20px'}, env(safe-area-inset-top)) 20px 12px 20px` },
+  mainTitle: { fontSize: isSmall ? '28px' : '32px', fontWeight: '800', color: '#000000', margin: 0, letterSpacing: '-0.5px' },
   searchContainer: { padding: `4px 20px ${isSmall ? '12px' : '16px'} 20px`, borderBottom: '1px solid #e5e5ea' },
   searchBarWrapper: { position: 'relative', backgroundColor: '#7676801F', borderRadius: '10px', padding: '8px 12px', display: 'flex', alignItems: 'center' },
   searchIcon: { fontSize: '16px', marginRight: '6px', color: '#8e8e93' },
   searchInput: { flex: 1, border: 'none', backgroundColor: 'transparent', fontSize: '17px', outline: 'none', color: '#000' },
   clearButton: { border: 'none', backgroundColor: '#c7c7cc', color: '#ffffff', borderRadius: '50%', width: '18px', height: '18px', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   
+  // ✨ 신규: Control 화면의 서브 탭 디자인 (iOS 세그먼트 컨트롤 스타일)
+  segmentedControlContainer: { padding: '8px 20px 12px 20px', backgroundColor: '#ffffff', borderBottom: '1px solid #e5e5ea' },
+  segmentedControl: { display: 'flex', backgroundColor: '#e4e4e9', borderRadius: '8px', padding: '2px' },
+  segmentBtn: { flex: 1, textAlign: 'center', padding: '6px 0', fontSize: '13px', fontWeight: '600', color: '#000', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.2s ease' },
+  segmentBtnActive: { backgroundColor: '#ffffff', boxShadow: '0 1px 3px rgba(0,0,0,0.12)' },
+
   scrollArea: { flex: 1, overflowY: 'auto', backgroundColor: '#ffffff' },
   
+  // ✨ 업데이트: 한 화면에 더 많이 보이도록 리스트 위아래 패딩(여백)을 대폭 촘촘하게 축소
   listWrapper: { padding: '0 20px' },
-  listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isSmall ? '12px 0' : '16px 0', borderBottom: '1px solid #e5e5ea', cursor: 'pointer' },
+  listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: isSmall ? '8px 0' : '10px 0', borderBottom: '1px solid #e5e5ea', cursor: 'pointer' },
   listItemContent: { display: 'flex', flexDirection: 'column', flex: 1, paddingRight: '12px' },
-  listTitleRow: { display: 'flex', alignItems: 'flex-start', marginBottom: '4px' },
-  listGeneric: { fontSize: isSmall ? '16px' : '17px', color: '#000', fontWeight: '500', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.3', wordBreak: 'break-word' },
-  listControlBadge: { backgroundColor: '#ffebeb', color: '#ff3b30', fontSize: '11px', fontWeight: '700', padding: '2px 6px', borderRadius: '4px', marginLeft: '8px', marginTop: '2px', overflow: 'hidden', flexShrink: 0 },
-  listBrand: { fontSize: isSmall ? '13px' : '14px', color: '#8e8e93', fontWeight: '400' },
-  chevron: { fontSize: '16px', color: '#c7c7cc', fontWeight: '600' },
+  listTitleRow: { display: 'flex', alignItems: 'flex-start', marginBottom: '2px' }, // 마진도 4px -> 2px로 축소
+  listGeneric: { fontSize: isSmall ? '15px' : '16px', color: '#000', fontWeight: '500', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.25', wordBreak: 'break-word' },
+  
+  listControlBadge: { fontSize: '10px', fontWeight: '700', padding: '1px 6px', borderRadius: '4px', marginLeft: '6px', marginTop: '2px', overflow: 'hidden', flexShrink: 0 },
+  listBrand: { fontSize: isSmall ? '12px' : '13px', color: '#8e8e93', fontWeight: '400' },
+  chevron: { fontSize: '14px', color: '#c7c7cc', fontWeight: '600' },
   clearHistoryBtn: { backgroundColor: 'transparent', color: '#ff3b30', border: 'none', fontSize: '15px', fontWeight: '600', cursor: 'pointer', padding: '8px 16px' },
 
   tabBar: { flexShrink: 0, height: 'calc(54px + env(safe-area-inset-bottom, 0px))', paddingBottom: 'env(safe-area-inset-bottom, 0px)', borderTop: '1px solid #e5e5ea', backgroundColor: '#f8f8f8', display: 'flex' },
@@ -351,7 +402,7 @@ const getStyles = (isSmall) => ({
   tabIcon: { fontSize: '20px', marginBottom: '2px' },
   tabLabel: { fontSize: '10px', fontWeight: '600' },
   
-  emptyContainer: { textAlign: 'center', paddingTop: '100px' },
+  emptyContainer: { textAlign: 'center', paddingTop: '80px' },
   emptyIcon: { fontSize: '48px', marginBottom: '12px', opacity: 0.3 },
   emptyText: { fontSize: '16px', color: '#8e8e93', fontWeight: '500' },
   loadingText: { textAlign: 'center', padding: '30px', color: '#8e8e93' },
@@ -374,7 +425,7 @@ const getStyles = (isSmall) => ({
   brandNameText: { fontSize: isSmall ? '20px' : '24px', color: '#007aff', fontWeight: '700', letterSpacing: '-0.3px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'break-word', marginRight: '8px' },
   genericNameText: { fontSize: isSmall ? '18px' : '22px', color: '#34c759', fontWeight: '700', letterSpacing: '-0.3px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.3', wordBreak: 'break-word' },
   
-  controlBadge: { backgroundColor: '#ffebeb', color: '#ff3b30', fontSize: isSmall ? '13px' : '15px', fontWeight: '700', padding: '4px 10px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, marginTop: '2px' },
+  controlBadge: { fontSize: isSmall ? '13px' : '15px', fontWeight: '700', padding: '4px 10px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, marginTop: '2px' },
   
   treeWrapper: { display: 'flex', alignItems: 'center', marginTop: '4px' },
   treeLine: { color: '#c7c7cc', fontFamily: 'monospace', fontSize: '18px', marginRight: '8px' },
